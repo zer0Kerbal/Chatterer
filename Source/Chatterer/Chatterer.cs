@@ -363,7 +363,7 @@ namespace Chatterer
         {
             if (ToolbarManager.ToolbarAvailable)
             {
-                if (debugging) Debug.Log("[CHATR] blizzy78's Toolbar plugin found ! Set toolbar button.");
+                Log.dbg("blizzy78's Toolbar plugin found ! Set toolbar button.");
 
                 chatterer_toolbar_button = ToolbarManager.Instance.add("Chatterer", "UI");
                 chatterer_toolbar_button.TexturePath = "Chatterer/Textures/chatterer_icon_toolbar";
@@ -371,7 +371,7 @@ namespace Chatterer
                 chatterer_toolbar_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
                 chatterer_toolbar_button.OnClick += ((e) =>
                 {
-                    if (debugging) Debug.Log("[CHATR] Toolbar UI button clicked, when hide_all_windows = " + hide_all_windows);
+                    Log.dbg("Toolbar UI button clicked, when hide_all_windows = {0}", hide_all_windows);
 
                     if (launcherButton == null && ToolbarManager.ToolbarAvailable)
                     {
@@ -382,12 +382,12 @@ namespace Chatterer
                         if (hide_all_windows)
                         {
                             launcherButton.SetTrue();
-                            if (debugging) Debug.Log("[CHATR] Blizzy78's Toolbar UI button clicked, launcherButton.State = " + launcherButton.toggleButton.CurrentState);
+                            Log.dbg("Blizzy78's Toolbar UI button clicked, launcherButton.State = {0}", launcherButton.toggleButton.CurrentState);
                         }
                         else if (!hide_all_windows)
                         {
                             launcherButton.SetFalse();
-                            if (debugging) Debug.Log("[CHATR] Blizzy78's Toolbar UI button clicked, saving settings... & launcherButton.State = " + launcherButton.toggleButton.CurrentState);
+                            Log.dbg("Blizzy78's Toolbar UI button clicked, saving settings... & launcherButton.State = {0}", launcherButton.toggleButton.CurrentState);
                         }
                     }
                 });
@@ -399,7 +399,7 @@ namespace Chatterer
             // Create the button in the KSP AppLauncher
             if (launcherButton == null && !useBlizzy78Toolbar)
             {
-                if (debugging) Debug.Log("[CHATR] Building ApplicationLauncherButton");
+                Log.dbg("Building ApplicationLauncherButton");
                                 
                 launcherButton = ApplicationLauncher.Instance.AddModApplication(UIToggle, UIToggle,
                                                                             null, null,
@@ -458,7 +458,7 @@ namespace Chatterer
                     chatterer_button_Texture = tex2d;
                     launcherButton.SetTexture(tex2d);
 
-                    //if (debugging) Debug.Log("[CHATR] SetAppLauncherButtonTexture(" + tex2d + ");");
+                    Log.dbg("SetAppLauncherButtonTexture({0});", tex2d);
                 }
             }
         }
@@ -470,13 +470,13 @@ namespace Chatterer
                 hide_all_windows = true;
                 save_plugin_settings();
 
-                if (debugging) Debug.Log("[CHATR] UIToggle(OFF)");
+                Log.dbg("UIToggle(OFF)");
             }
             else
             {
                 hide_all_windows = !hide_all_windows;
 
-                if (debugging) Debug.Log("[CHATR] UIToggle(ON)");
+                Log.dbg("UIToggle(ON)");
             }
         }
 
@@ -486,10 +486,10 @@ namespace Chatterer
             {
                 ApplicationLauncher.Instance.RemoveModApplication(launcherButton);
 
-                if (debugging) Debug.Log("[CHATR] launcherButtonRemove");
+                Log.dbg("launcherButtonRemove");
             }
 
-            else if (debugging) Debug.Log("[CHATR] launcherButtonRemove (useless attempt)");
+            else Log.dbg("launcherButtonRemove (useless attempt)");
         }
 
         public void OnSceneChangeRequest(GameScenes _scene)
@@ -522,7 +522,7 @@ namespace Chatterer
                 if (prev_vessel != null) //prev_vessel = null on first flight load, so check this to avoid EXP throw
                 {
                     //active vessel has changed
-                    if (debugging) Debug.Log("[CHATR] OnVesselChange() :: prev = " + prev_vessel.vesselName + ", curr = " + vessel.vesselName);
+                    Log.dbg("OnVesselChange() :: prev = {0}, curr = {1}", prev_vessel.vesselName, vessel.vesselName);
 
                     stop_audio("all");
 
@@ -530,8 +530,8 @@ namespace Chatterer
                     {
                         ConfigNode all_but_prev_vessel = new ConfigNode();
 
-                        if (debugging) Debug.Log("[CHATR] checking each vessel_id in vessel_settings_node");
-                        if (debugging) Debug.Log("[CHATR] prev_vessel.id = " + prev_vessel.id.ToString());
+                        Log.dbg("checking each vessel_id in vessel_settings_node");
+                        Log.dbg("prev_vessel.id = {0}", prev_vessel.id);
                         foreach (ConfigNode _vessel in vessel_settings_node.nodes)
                         {
                             //search for previous vessel id
@@ -539,15 +539,15 @@ namespace Chatterer
                             {
                                 string val = _vessel.GetValue("vessel_id");
 
-                                //if (debugging) Debug.Log("[CHATR] node vessel_id = " + val);
+                                Log.dbg("node vessel_id = {0}", val);
 
                                 if (val != prev_vessel.id.ToString())
                                 {
                                     //vessel_settings_node.RemoveNode(prev_vessel.id.ToString());
-                                    //if (debugging) Debug.Log("[CHATR] prev_vessel old node removed");
+                                    //Log.dbg("prev_vessel old node removed");
                                     //temp_vessels_string = prev_vessel.id.ToString();
                                     all_but_prev_vessel.AddNode(_vessel);
-                                    if (debugging) Debug.Log("[CHATR] OnVesselChange() :: node vessel_id != prev_vessel.id :: node vessel added to all_but_prev_vessel");
+                                    Log.dbg("OnVesselChange() :: node vessel_id != prev_vessel.id :: node vessel added to all_but_prev_vessel");
                                 }
                                 //else
                                 //{
@@ -558,18 +558,18 @@ namespace Chatterer
                         //foreach (ConfigNode cn in vessel_settings_node.nodes)
                         //{
                         //vessel_settings_node.RemoveNodes("");
-                        //    if (debugging) Debug.Log("[CHATR] old nodes removed");
+                        //    Log.dbg("old nodes removed");
                         //}
 
                         vessel_settings_node = all_but_prev_vessel;
-                        //if (debugging) Debug.Log("[CHATR] OnVesselChange() :: vessel_settings node = all_but_prev_vessel");
+                        //Log.dbg("OnVesselChange() :: vessel_settings node = all_but_prev_vessel");
 
                         new_vessel_node(prev_vessel);
-                        //if (debugging) Debug.Log("[CHATR] OnVesselChange() :: new node created using prev_vessel and added to vessel_settings node");
+                        //Log.dbg("OnVesselChange() :: new node created using prev_vessel and added to vessel_settings node");
 
                         //save_vessel_settings_node();
                         vessel_settings_node.Save(settings_path + "vessels.cfg");
-                        if (debugging) Debug.Log("[CHATR] OnVesselChange() :: vessel_settings node saved to vessel_settings.cfg");
+                        Log.dbg("OnVesselChange() :: vessel_settings node saved to vessel_settings.cfg");
 
 
                         load_vessel_settings_node();    //reload with current vessel settings
@@ -584,9 +584,9 @@ namespace Chatterer
 
                     if (use_vessel_settings)
                     {
-                        if (debugging) Debug.Log("[CHATR] OnVesselChange() FirstLoad :: calling load_vessel_settings_node()");
+                        Log.dbg("OnVesselChange() FirstLoad :: calling load_vessel_settings_node()");
                         load_vessel_settings_node(); //load and search for settings for this vessel
-                        if (debugging) Debug.Log("[CHATR] OnVesselChange() FirstLoad :: calling search_vessel_settings_node()");
+                        Log.dbg("OnVesselChange() FirstLoad :: calling search_vessel_settings_node()");
                         search_vessel_settings_node();
                     }
                 }
@@ -595,7 +595,7 @@ namespace Chatterer
 
         void OnStageSeparation(EventReport data)
         {
-            if (debugging) Debug.Log("[CHATR] beginning exchange, OnStageSeparation");
+            Log.dbg("beginning exchange, OnStageSeparation");
             begin_exchange(0);
         }
 
@@ -607,12 +607,12 @@ namespace Chatterer
                 {
                     if (secs_since_last_exchange > 30.0f)
                     {
-                        if (debugging) Debug.Log("[CHATR] beginning exchange, OnVesselSituationChange : " + data.host.SituationString);
+                        Log.dbg("beginning exchange, OnVesselSituationChange : {0}", data.host.SituationString);
                         
                         pod_begins_exchange = true;
                         begin_exchange(0);  //for delay try (rand.Next(0, 3)) for 0-2 seconds for randomness
                     }
-                    else if (debugging) Debug.Log("[CHATR] prevent spam from situation change, time remaining : " + (30.0f - secs_since_last_exchange).ToString("F0") + "s.");
+                    else Log.dbg("prevent spam from situation change, time remaining : {0:0}s.", (30.0f - secs_since_last_exchange));
                 }
             }
         }
@@ -621,7 +621,7 @@ namespace Chatterer
         {
             if (data.host.isActiveVessel)
             {
-                if (debugging) Debug.Log("[CHATR] beginning exchange, OnVesselSOIChanged : " + data.to.bodyName);
+                Log.dbg("beginning exchange, OnVesselSOIChanged : {0}", data.to.bodyName);
                 begin_exchange(0);
             }
         }
@@ -632,15 +632,15 @@ namespace Chatterer
             {
                 science_transmitted = true;
 
-                if (debugging) Debug.Log("[CHATR] Event scienceTX PASS");
+                Log.dbg("Event scienceTX PASS");
             }
 
-            if (debugging) Debug.Log("[CHATR] Event scienceTX triggered, reason : " + scitxreason.ToString());
+            Log.dbg("Event scienceTX triggered, reason : {0}", scitxreason);
         }
 
         void OnCommHomeStatusChange(Vessel data0, bool data1)
         {
-            if (debugging) Debug.Log("[CHATR] OnCommHomeStatusChange : Triggered ");
+            Log.dbg("OnCommHomeStatusChange : Triggered ");
 
             if (HighLogic.CurrentGame.Parameters.Difficulty.EnableCommNet == true) // Check if player chose to use CommNet
             {
@@ -650,7 +650,7 @@ namespace Chatterer
 
                     if (!exchange_playing && !was_on_EVA && data0.isActiveVessel)
                     {
-                        if (debugging) Debug.Log("[CHATR] beginning exchange, OnCommHomeStatusChange : We are online ! ");
+                        Log.dbg("beginning exchange, OnCommHomeStatusChange : We are online ! ");
 
                         pod_begins_exchange = false;
                         begin_exchange(0);
@@ -662,7 +662,7 @@ namespace Chatterer
 
                     if (data0.isActiveVessel)
                     {
-                        if (debugging) Debug.Log("[CHATR] OnCommHomeStatusChange : We are offline zzzzzzz... ");
+                        Log.dbg("OnCommHomeStatusChange : We are offline zzzzzzz... ");
 
                         initial_chatter.PlayOneShot(voidnoise_clip);
                     }
@@ -670,21 +670,21 @@ namespace Chatterer
             }
             else inRadioContact = true; // If player doesn't use CommNet assume radio contact is always true
 
-            if (debugging) Debug.Log("[CHATR] OnCommHomeStatusChange() : " + "Vessel : " + data0 + ", inRadioContact = " + inRadioContact);
+            Log.dbg("OnCommHomeStatusChange() : Vessel : {0}, inRadioContact = {1}", data0, inRadioContact);
         }
 
         void OnGamePause()
         {
             if (!all_muted) mute_all = true;
 
-            if (debugging) Debug.Log("[CHATR] OnGamePause() : Mute = " + mute_all);
+            Log.dbg("OnGamePause() : Mute = {0}", mute_all);
         }
 
         void OnGameUnpause()
         {
             if (all_muted) mute_all = false;
 
-            if (debugging) Debug.Log("[CHATR] OnGameUnpause() : Mute = " + mute_all);
+            Log.dbg("OnGameUnpause() : Mute = {0}", mute_all);
         }
 
         private void checkChatterGender()
@@ -695,21 +695,21 @@ namespace Chatterer
 
             if (debugging)
             {
-                if (crew.Count == 0) Debug.Log("[CHATR] No Chatter gender check (no crew in the vicinity)");
-                else Debug.Log("[CHATR] Chatter is female :" + chatter_is_female.ToString());
+                if (crew.Count == 0) Log.info("No Chatter gender check (no crew in the vicinity)");
+                else Log.info("Chatter is female :{0}", chatter_is_female);
             }
         }
 
         internal void OnDestroy() 
         {
-            if (debugging) Debug.Log("[CHATR] OnDestroy() START");
+            Log.dbg("OnDestroy() START");
 
             // Remove the button from the Blizzy's toolbar
             if (chatterer_toolbar_button != null)
             {
                 chatterer_toolbar_button.Destroy();
 
-                if (debugging) Debug.Log("[CHATR] OnDestroy() Blizzy78's toolbar button removed");
+                Log.dbg("OnDestroy() Blizzy78's toolbar button removed");
             }
 
             // Un-register the callbacks
@@ -734,12 +734,12 @@ namespace Chatterer
             StopAllCoroutines();
             exchange_playing = false;
 
-            if (debugging) Debug.Log("[CHATR] OnDestroy() END");
+            Log.dbg("OnDestroy() END");
         }
 
         private void OnGUI() //start the GUI
         {
-            if (debugging & !gui_running) Debug.Log("[CHATR] start_GUI()");
+            if (debugging & !gui_running) Log.info("start_GUI()");
             
             draw_GUI(); 
 
@@ -748,7 +748,7 @@ namespace Chatterer
 
         private void stop_GUI() //stop the GUI (virtualy, is this actually still needed ?)
         {
-            if (debugging) Debug.Log("[CHATR] stop_GUI()");
+            Log.dbg("stop_GUI()");
             
             gui_running = false;
         }
@@ -820,7 +820,7 @@ namespace Chatterer
 
             gui_styles_set = true;
 
-            if (debugging) Debug.Log("[CHATR] GUI styles set");
+            Log.dbg("GUI styles set");
         }
 
         private void build_skin_list()
@@ -854,7 +854,7 @@ namespace Chatterer
                 }
             }
 
-            if (debugging) Debug.Log("[CHATR] skin list built, count = " + g_skin_list.Count);
+            Log.dbg("skin list built, count = {0}", g_skin_list.Count);
         }
 
         protected void draw_GUI()
@@ -942,7 +942,7 @@ namespace Chatterer
             {
                 mute_all = !mute_all;
                 
-                if (debugging) Debug.Log("[CHATR] Mute = " + mute_all);
+                Log.dbg("Mute = {0}", mute_all);
             }
 
             string closeUI = "Close";
@@ -1005,7 +1005,7 @@ namespace Chatterer
 
             if (chatter_freq != prev_chatter_freq)
             {
-                if (debugging) Debug.Log("[CHATR] chatter_freq has changed, setting new delay between exchanges...");
+                Log.dbg("chatter_freq has changed, setting new delay between exchanges...");
                 if (chatter_freq == 0)
                 {
                     exchange_playing = false;
@@ -1016,7 +1016,7 @@ namespace Chatterer
             }
 
             //Chatter volume
-            _content.text = "Chatter volume: " + (chatter_vol_slider * 100).ToString("F0") + "%";
+            _content.text = String.Format("Chatter volume: {0:0}%", (chatter_vol_slider * 100));
             _content.tooltip = "Volume of chatter audio";
             GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
             GUILayout.Label(_content, label_txt_left, GUILayout.ExpandWidth(true));
@@ -1025,7 +1025,7 @@ namespace Chatterer
 
             if (chatter_vol_slider != prev_chatter_vol_slider)
             {
-                if (debugging) Debug.Log("[CHATR] Changing chatter AudioSource volume...");
+                Log.dbg("Changing chatter AudioSource volume...");
                 initial_chatter.volume = chatter_vol_slider;
                 response_chatter.volume = chatter_vol_slider;
                 prev_chatter_vol_slider = chatter_vol_slider;
@@ -1041,7 +1041,7 @@ namespace Chatterer
 
             if (quindar_vol_slider != prev_quindar_vol_slider)
             {
-                if (debugging) Debug.Log("[CHATR] Quindar volume has been changed...");
+                Log.dbg("Quindar volume has been changed...");
                 quindar1.volume = quindar_vol_slider;
                 quindar2.volume = quindar_vol_slider;
                 prev_quindar_vol_slider = quindar_vol_slider;
@@ -1142,16 +1142,16 @@ namespace Chatterer
                         if (beepsource_list.Count > 1)
                         {
                             //remove a beepsource
-                            if (debugging) Debug.Log("[CHATR] num_sources = " + beepsource_list.Count);
+                            Log.dbg("num_sources = {0}", beepsource_list.Count);
 
                             Destroy(beepsource_list[beepsource_list.Count - 1].beep_player);   //destroy GameObject holding Source and Filters
-                            if (debugging) Debug.Log("[CHATR] beep_player destroyed");
+                            Log.dbg("beep_player destroyed");
 
-                            if (debugging) Debug.Log("[CHATR] attempting to remove BeepSource at index " + (beepsource_list.Count - 1));
+                            Log.dbg("attempting to remove BeepSource at index {0}", (beepsource_list.Count - 1));
 
                             beepsource_list.RemoveAt(beepsource_list.Count - 1);  //remove the last BeepSource from the list
 
-                            if (debugging) Debug.Log("[CHATR] BeepSource at index " + (beepsource_list.Count) + " removed from beepsource_list");
+                            Log.dbg("BeepSource at index {0} removed from beepsource_list", beepsource_list.Count);
 
 
 
@@ -1192,12 +1192,12 @@ namespace Chatterer
                             if (sel_beep_page < 1)
                             {
                                 sel_beep_page = 1;
-                                if (debugging) Debug.Log("[CHATR] this is the first page");
+                                Log.dbg("this is the first page");
                             }
                             else
                             {
                                 sel_beep_src = 0;
-                                if (debugging) Debug.Log("[CHATR] page back");
+                                Log.dbg("page back");
                             }
                         }
                     }
@@ -1232,7 +1232,7 @@ namespace Chatterer
                 if (sources.Count < 5) sel_grid_width = sources.Count;
 
                 sel_beep_src = GUILayout.SelectionGrid(sel_beep_src, s, sel_grid_width, GUILayout.ExpandWidth(true));
-                //if (debugging) Debug.Log("[CHATR] grid OK");
+                //Log.dbg("grid OK");
 
                 if (show_advanced_options)
                 {
@@ -1248,12 +1248,12 @@ namespace Chatterer
                             if (sel_beep_page > num_beep_pages)
                             {
                                 sel_beep_page = num_beep_pages;
-                                if (debugging) Debug.Log("[CHATR] this is the last page");
+                                Log.dbg("this is the last page");
                             }
                             else
                             {
                                 sel_beep_src = 0;
-                                if (debugging) Debug.Log("[CHATR] page next");
+                                Log.dbg("page next");
                             }
                         }
                     }
@@ -1264,7 +1264,7 @@ namespace Chatterer
                     if (GUILayout.Button(_content, GUILayout.ExpandWidth(false)))
                     {
                         add_new_beepsource();
-                        if (debugging) Debug.Log("[CHATR] new BeepSource added");
+                        Log.dbg("new BeepSource added");
                         save_plugin_settings();
 
 
@@ -1290,15 +1290,15 @@ namespace Chatterer
                 }
                 GUILayout.EndHorizontal();
 
-                //if (debugging) Debug.Log("[CHATR] beepsource_list.Count = " + beepsource_list.Count);
-                //if (debugging) Debug.Log("[CHATR] num_beep_pages = " + num_beep_pages);
-                //if (debugging) Debug.Log("[CHATR] sel_beep_page = " + sel_beep_page);
-                //if (debugging) Debug.Log("[CHATR] sel_beep_src = " + sel_beep_src);
-                //if (debugging) Debug.Log("[CHATR] beepsource_list index [((sel_beep_page - 1) * 10) + sel_beep_src] = " + (((sel_beep_page - 1) * 10) + sel_beep_src));
+                //Log.dbg("beepsource_list.Count = " + beepsource_list.Count);
+                //Log.dbg("num_beep_pages = " + num_beep_pages);
+                //Log.dbg("sel_beep_page = " + sel_beep_page);
+                //Log.dbg("sel_beep_src = " + sel_beep_src);
+                //Log.dbg("beepsource_list index [((sel_beep_page - 1) * 10) + sel_beep_src] = " + (((sel_beep_page - 1) * 10) + sel_beep_src));
 
                 BeepSource bm = beepsource_list[(((sel_beep_page - 1) * 10) + sel_beep_src)];   //shortcut   0-9 only, but correspond to the correct beepsource
 
-                //if (debugging) Debug.Log("[CHATR] shortcut OK");
+                //Log.dbg("shortcut OK");
 
 
 
@@ -1320,7 +1320,7 @@ namespace Chatterer
 
                     if (bm.precise_freq != bm.prev_precise_freq)
                     {
-                        if (debugging) Debug.Log("[CHATR] precise_freq has changed, resetting beep_timer...");
+                        Log.dbg("precise_freq has changed, resetting beep_timer...");
                         bm.timer = 0;
                         bm.prev_precise_freq = bm.precise_freq;
                         if (bm.precise_freq == 0 && bm.current_clip == "Random")
@@ -1357,7 +1357,7 @@ namespace Chatterer
 
                     if (bm.loose_freq != bm.prev_loose_freq)
                     {
-                        if (debugging) Debug.Log("[CHATR] loose_freq has changed, resetting beep_timer...");
+                        Log.dbg("loose_freq has changed, resetting beep_timer...");
                         new_beep_loose_timer_limit(bm);
                         bm.timer = 0;
                         bm.prev_loose_freq = bm.loose_freq;
@@ -1365,7 +1365,7 @@ namespace Chatterer
                 }
 
                 //Volume
-                _content.text = "Beep volume: " + (bm.audiosource.volume * 100).ToString("F0") + "%";
+                _content.text = String.Format("Beep volume: {0:0}%", (bm.audiosource.volume * 100));
                 _content.tooltip = "Volume of this beepsource";
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
                 GUILayout.Label(_content, label_txt_left, GUILayout.ExpandWidth(true));
@@ -1399,7 +1399,7 @@ namespace Chatterer
 
                     if (bm.precise)
                     {
-                        if (debugging) Debug.Log("[CHATR] beep timing mode has changed to precise");
+                        Log.dbg("beep timing mode has changed to precise");
                         if (bm.current_clip == "Random" && bm.precise_freq == 0)
                         {
                             //disallow random looped clips
@@ -1506,7 +1506,7 @@ namespace Chatterer
 
                 if (sstv_freq != prev_sstv_freq)
                 {
-                    if (debugging) Debug.Log("[CHATR] sstv_freq has changed, setting new sstv timer limit...");
+                    Log.dbg("sstv_freq has changed, setting new sstv timer limit...");
                     if (sstv_freq == 0) sstv.Stop();
                     else new_sstv_loose_timer_limit();
                     sstv_timer = 0;
@@ -1528,7 +1528,7 @@ namespace Chatterer
 
                 if (sstv_vol_slider != prev_sstv_vol_slider)
                 {
-                    if (debugging) Debug.Log("[CHATR] Changing SSTV AudioSource volume...");
+                    Log.dbg("Changing SSTV AudioSource volume...");
                     sstv.volume = sstv_vol_slider;
                     prev_sstv_vol_slider = sstv_vol_slider;
                 }
@@ -1655,7 +1655,7 @@ namespace Chatterer
                     }
                     else
                     {
-                        if (debugging) Debug.Log("[CHATR] setting new soundscape1 timer limit...");
+                        Log.dbg("setting new soundscape1 timer limit...");
                         new_soundscape_loose_timer_limit();
                         aae_soundscape_timer = 0;
                     }
@@ -1706,9 +1706,9 @@ namespace Chatterer
                 if (use_vessel_settings)
                 {
                     //just toggled on, load stuff
-                    if (debugging) Debug.Log("[CHATR] settings_gui() :: calling load_vessel_settings_node()");
+                    Log.dbg("settings_gui() :: calling load_vessel_settings_node()");
                     load_vessel_settings_node(); //load and search for settings for this vessel
-                    if (debugging) Debug.Log("[CHATR] settings_gui() :: calling search_vessel_settings_node()");
+                    Log.dbg("settings_gui() :: calling search_vessel_settings_node()");
                     search_vessel_settings_node();
                 }
                 prev_use_vessel_settings = use_vessel_settings;
@@ -1884,7 +1884,7 @@ namespace Chatterer
             {
                 skin_index--;
                 if (skin_index < 0) skin_index = g_skin_list.Count;
-                if (debugging) Debug.Log("[CHATR] new skin_index = " + skin_index + " :: g_skin_list.Count = " + g_skin_list.Count);
+                Log.dbg("new skin_index = {0} :: g_skin_list.Count = {1}", skin_index, g_skin_list.Count);
             }
 
             string skin_name = "";
@@ -1893,14 +1893,14 @@ namespace Chatterer
             _content.text = skin_name;
             _content.tooltip = "Current skin";
             GUILayout.Label(_content, label_txt_center, GUILayout.ExpandWidth(true));
-            //if (debugging) Debug.Log("[CHATR] skin label OK :: skin_list.Count = " + skin_list.Count);
+            //Log.dbg("skin label OK :: skin_list.Count = " + skin_list.Count);
             _content.text = "►";
             _content.tooltip = "Select next skin";
             if (GUILayout.Button(_content, GUILayout.ExpandWidth(true)))
             {
                 skin_index++;
                 if (skin_index > g_skin_list.Count) skin_index = 0;
-                if (debugging) Debug.Log("[CHATR] new skin_index = " + skin_index + " :: g_skin_list.Count = " + g_skin_list.Count);
+                Log.dbg("new skin_index = {0} :: g_skin_list.Count = {1}", skin_index, g_skin_list.Count);
             }
             
             GUILayout.EndHorizontal();
@@ -1910,8 +1910,8 @@ namespace Chatterer
         {
             //EventData<Game> foo = GameEvents.onGameStateSaved;
 
-            //if (foo == null) GUILayout.Label("[CHATR] EventData<Game> foo == null");
-            //else GUILayout.Label("[CHATR] foo = " + foo.ToString());
+            //if (foo == null) GUILayout.Label("EventData<Game> foo == null");
+            //else GUILayout.Label("foo = " + foo.ToString());
 
 
 
@@ -1962,7 +1962,7 @@ namespace Chatterer
 
             //foreach (var val in preset_list)
             //{
-            //    if (debugging) Debug.Log("[CHATR] preset val.ToString() = " +  val.ToString());
+            //    Log.dbg("preset val.ToString() = " +  val.ToString());
             //}
 
             //AssetBase ab = new AssetBase();
@@ -1971,7 +1971,7 @@ namespace Chatterer
 
             //foreach (GUISkin skin in jops)
             //{
-            //    //if (debugging) Debug.Log("[CHATR] skin.name = " + skin.name);
+            //    //Log.dbg("skin.name = " + skin.name);
             //    GUILayout.Label("skin.name = " + skin.name, xkcd_label);
             //}
 
@@ -2015,16 +2015,16 @@ namespace Chatterer
                 if (GUILayout.Button(_content, GUILayout.ExpandWidth(false)))
                 {
                     if ((exchange_playing && disable_beeps_during_chatter) || sstv.isPlaying) return;   //don't play during chatter or sstv
-                    //if (debugging) Debug.Log("[CHATR] playing sample " + source.current_clip + " one time...");
+                    //Log.dbg("playing sample " + source.current_clip + " one time...");
 
                     OTP_source = source;
                     OTP_stored_clip = source.audiosource.clip;
 
-                    //if (debugging) Debug.Log("[CHATR] OTP_stored_clip = " + OTP_stored_clip);
+                    //Log.dbg("OTP_stored_clip = " + OTP_stored_clip);
                     //source.current_clip = key;
-                    //if (debugging) Debug.Log("[CHATR] set clip " + source.current_clip + " to play once");
+                    //Log.dbg("set clip " + source.current_clip + " to play once");
                     //set_beep_clip(source);
-                    //if (debugging) Debug.Log("[CHATR] source.audiosource.clip set");
+                    //Log.dbg("source.audiosource.clip set");
 
                     //AudioClip _clip;
                     if (dict_probe_samples.TryGetValue(key, out _clip))
@@ -2044,7 +2044,7 @@ namespace Chatterer
                     //sample was selected
                     source.current_clip = key;  //set current_clip
                     set_beep_clip(source);  //then assign AudioClip
-                    if (debugging) Debug.Log("[CHATR] sample selector clip set :: clip = " + key);
+                    Log.dbg("sample selector clip set :: clip = {0}", key);
 
                 }
 
@@ -2114,18 +2114,18 @@ namespace Chatterer
                         if (dict_background_samples2.TryGetValue(src.audiosource.clip, out s))
                         {
                             src.current_clip = s;
-                            if (debugging) Debug.Log("[CHATR] background AudioClip set :: current_clip = " + s);
+                            Log.dbg("background AudioClip set :: current_clip = {0}", s);
                         }
                     }
                     else
                     {
-                        if (debugging) Debug.LogError("[CHATR] Could not find AudioClip for key " + src.current_clip + " :: setting AudioClip to \"First\"");
+                        Log.error("Could not find AudioClip for key {0} :: setting AudioClip to \"First\"", src.current_clip);
                         src.current_clip = "First";
                         set_background_clip(src);
                         //set_beep_clip(beepsource);
                     }
 
-                    if (debugging) Debug.Log("[CHATR] sample selector clip set :: clip = " + key);
+                    Log.dbg("sample selector clip set :: clip = {0}", key);
 
                 }
 
@@ -2153,7 +2153,7 @@ namespace Chatterer
             if (beepsource.current_clip == "First")
             {
                 //"First" is used when creating a new beepsource
-                //if (debugging) Debug.Log("[CHATR] beep AudioClip is \"First\"");
+                //Log.dbg("beep AudioClip is \"First\"");
                 //pick any AudioClip (when adding a new beepsource)
 
                 //dump all values into a List
@@ -2169,12 +2169,12 @@ namespace Chatterer
                 if (dict_probe_samples2.TryGetValue(beepsource.audiosource.clip, out s))
                 {
                     beepsource.current_clip = s;
-                    if (debugging) Debug.Log("[CHATR] \"First\" AudioClip set :: current_clip = " + s);
+                    Log.dbg("\"First\" AudioClip set :: current_clip = {0}", s);
                 }
             }
             else if (beepsource.current_clip == "Random")
             {
-                if (debugging) Debug.Log("[CHATR] setting random AudioClip...");
+                Log.dbg("setting random AudioClip...");
                 List<AudioClip> clip_list = new List<AudioClip>();
                 foreach (AudioClip clip in dict_probe_samples.Values)
                 {
@@ -2185,7 +2185,7 @@ namespace Chatterer
                 if (dict_probe_samples2.TryGetValue(beepsource.audiosource.clip, out s))
                 {
                     beepsource.current_clip = s;
-                    if (debugging) Debug.Log("[CHATR] beep AudioClip randomized :: current_clip = " + s);
+                    Log.dbg("beep AudioClip randomized :: current_clip = {0}", s);
                 }
             }
             else
@@ -2201,12 +2201,12 @@ namespace Chatterer
                     if (dict_probe_samples2.TryGetValue(beepsource.audiosource.clip, out s))
                     {
                         beepsource.current_clip = s;
-                        if (debugging) Debug.Log("[CHATR] beep AudioClip set :: current_clip = " + s);
+                        Log.dbg("beep AudioClip set :: current_clip = " + s);
                     }
                 }
                 else
                 {
-                    if (debugging) Debug.LogError("[CHATR] Could not find AudioClip for key " + beepsource.current_clip + " :: setting AudioClip to \"First\"");
+                    Log.error("Could not find AudioClip for key {0} :: setting AudioClip to \"First\"", beepsource.current_clip);
                     beepsource.current_clip = "First";
                     set_beep_clip(beepsource);
                 }
@@ -2236,7 +2236,7 @@ namespace Chatterer
                 if (dict_background_samples2.TryGetValue(src.audiosource.clip, out s))
                 {
                     src.current_clip = s;
-                    if (debugging) Debug.Log("[CHATR] \"Default\" AudioClip set :: current_clip = " + s);
+                    Log.dbg("\"Default\" AudioClip set :: current_clip = {0}", s);
                 }
             }
         }
@@ -2252,7 +2252,7 @@ namespace Chatterer
             if (dict_soundscape_samples2.TryGetValue(aae_soundscape.clip, out s))
             {
                 aae_soundscape_current_clip = s;
-                if (debugging) Debug.Log("[CHATR] Soundscape AudioClip set :: current_clip = " + s);
+                Log.dbg("Soundscape AudioClip set :: current_clip = {0}", s);
             }
         }
 
@@ -2324,7 +2324,7 @@ namespace Chatterer
                 {
                     if (source.name.Substring(0, search_str_len) == search_str)
                     {
-                        if (debugging) Debug.Log("[CHATR] destroying " + source.name);
+                        Log.dbg("destroying {0}", source.name);
                         Destroy(source);
                     }
                 }
@@ -2344,7 +2344,7 @@ namespace Chatterer
                 {
                     if (source.name.Substring(0, search_str_len) == search_str)
                     {
-                        if (debugging) Debug.Log("[CHATR] destroying " + source.name);
+                        Log.dbg("destroying {0}", source.name);
                         Destroy(source);
                     }
                 }
@@ -2366,7 +2366,7 @@ namespace Chatterer
         //        //    {
         //        //        inSatteliteRadioContact = !inSatteliteRadioContact;
 
-        //        //        if (debugging) Debug.Log("[CHATR] Sattelite contact ! Signal delay =" + Convert.ToSingle(shortestcontrolDelay));
+        //        //        Log.dbg("Sattelite contact ! Signal delay =" + Convert.ToSingle(shortestcontrolDelay));
         //        //    }
         //        //}
         //        //else if (!RT2Hook.Instance.HasAnyConnection(vessel.id))
@@ -2376,7 +2376,7 @@ namespace Chatterer
         //        //        inSatteliteRadioContact = !inSatteliteRadioContact;
 
         //        //        shortestcontrolDelay = 0;
-        //        //        if (debugging) Debug.Log("[CHATR] No Sattelite contact ! Satt delay set to =" + Convert.ToSingle(shortestcontrolDelay));
+        //        //        Log.dbg("No Sattelite contact ! Satt delay set to =" + Convert.ToSingle(shortestcontrolDelay));
         //        //    }
         //        //}
 
@@ -2388,7 +2388,7 @@ namespace Chatterer
         //            {
         //                inRadioContact = !inRadioContact;
 
-        //                if (debugging) Debug.Log("[CHATR] Online ! Signal delay =" + Convert.ToSingle(controlDelay));
+        //                Log.dbg("Online ! Signal delay =" + Convert.ToSingle(controlDelay));
         //            }
         //        }
         //        else if (!RT2Hook.Instance.HasConnectionToKSC(vessel.id))
@@ -2398,7 +2398,7 @@ namespace Chatterer
         //                inRadioContact = !inRadioContact;
 
         //                controlDelay = 0;
-        //                if (debugging) Debug.Log("[CHATR] Offline ! Delay set to =" + Convert.ToSingle(controlDelay));
+        //                Log.dbg("Offline ! Delay set to =" + Convert.ToSingle(controlDelay));
 
         //                if (response_chatter.isPlaying == true) response_chatter.Stop();
         //                if (sstv.isPlaying == true) sstv.Stop();
@@ -2412,35 +2412,35 @@ namespace Chatterer
         private void load_quindar_audio()
         {
             //Create two AudioSources for quindar so PlayDelayed() can delay both beeps
-            if (debugging) Debug.Log("[CHATR] loading quindar_01 clip");
+            Log.dbg("loading quindar_01 clip");
             string path1 = "Chatterer/Sounds/chatter/quindar_01";
 
             if (GameDatabase.Instance.ExistsAudioClip(path1))
             {
                 quindar_01_clip = GameDatabase.Instance.GetAudioClip(path1);
-                if (debugging) Debug.Log("[CHATR] quindar_01 clip loaded");
+                Log.dbg("quindar_01 clip loaded");
             }
-            else Debug.LogWarning("[CHATR] quindar_01 audio file missing!");
+            else Log.warn("quindar_01 audio file missing!");
 
-            if (debugging) Debug.Log("[CHATR] loading quindar_02 clip");
+            Log.dbg("loading quindar_02 clip");
             string path2 = "Chatterer/Sounds/chatter/quindar_02";
 
             if (GameDatabase.Instance.ExistsAudioClip(path2))
             {
                 quindar_02_clip = GameDatabase.Instance.GetAudioClip(path2);
-                if (debugging) Debug.Log("[CHATR] quindar_02 clip loaded");
+                Log.dbg("quindar_02 clip loaded");
             }
-            else Debug.LogWarning("[CHATR] quindar_02 audio file missing!");
+            else Log.warn("quindar_02 audio file missing!");
 
-            if (debugging) Debug.Log("[CHATR] loading voidnoise clip");
+            Log.dbg("loading voidnoise clip");
             string path3 = "Chatterer/Sounds/chatter/voidnoise";
 
             if (GameDatabase.Instance.ExistsAudioClip(path3))
             {
                 voidnoise_clip = GameDatabase.Instance.GetAudioClip(path3);
-                if (debugging) Debug.Log("[CHATR] voidnoise clip loaded");
+                Log.dbg("voidnoise clip loaded");
             }
-            else Debug.LogWarning("[CHATR] quindar_02 audio file missing!");
+            else Log.warn("quindar_02 audio file missing!");
         }
 
         private void load_beep_audio()
@@ -2457,11 +2457,11 @@ namespace Chatterer
                 string[] st_array;
                 foreach (string ext in audio_file_ext)
                 {
-                    //if (debugging) Debug.Log("[CHATR] checking for " + ext + " files...");
+                    //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(probe_sounds_root, ext);
                     foreach (string file in st_array)
                     {
-                        //if (debugging) Debug.Log("[CHATR] probe file = " + file);
+                        //Log.dbg("probe file = " + file);
                         //[CHATR] file = C:/KSP/ksp-win-0-21-1/KSP_win/GameData/RBR/Sounds/apollo11/capcom/capcom_16.ogg
 
                         //tear out the whole root + directory + st + one more for final slash
@@ -2473,7 +2473,7 @@ namespace Chatterer
 
                         string short_file_name = file_name.Substring(0, end_pos);
 
-                        //if (debugging) Debug.Log("[CHATR] file_name = " + file_name);
+                        //Log.dbg("file_name = " + file_name);
 
                         if (ext == "*.mp3")
                         {
@@ -2485,11 +2485,11 @@ namespace Chatterer
                             //{
                             //    dict_probe_samples.Add(short_file_name, www_chatter.GetAudioClip(false));
                             //    dict_probe_samples2.Add(www_chatter.GetAudioClip(false), short_file_name);
-                            //    if (debugging) Debug.Log("[CHATR] " + mp3_path + " loaded OK");
+                            //    Log.dbg("" + mp3_path + " loaded OK");
                             //}
                             //else
                             {
-                                Debug.LogWarning("[CHATR] " + mp3_path + " load FAIL");
+                                Log.warn("{0} load FAIL", mp3_path);
                             }
                         }
                         else
@@ -2500,12 +2500,12 @@ namespace Chatterer
                                 //all_beep_clips.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
                                 dict_probe_samples.Add(short_file_name, GameDatabase.Instance.GetAudioClip(gdb_path));
                                 dict_probe_samples2.Add(GameDatabase.Instance.GetAudioClip(gdb_path), short_file_name);
-                                //if (debugging) Debug.Log("[CHATR] " + gdb_path + " loaded OK");
+                                //Log.dbg("" + gdb_path + " loaded OK");
                             }
                             else
                             {
                                 //no ExistsAudioClip == false
-                                Debug.LogWarning("[CHATR] " + gdb_path + " load FAIL");
+                                Log.warn("{0} load FAIL", gdb_path);
                             }
                         }
                     }
@@ -2526,11 +2526,11 @@ namespace Chatterer
                 string[] st_array;
                 foreach (string ext in audio_file_ext)
                 {
-                    //if (debugging) Debug.Log("[CHATR] checking for " + ext + " files...");
+                    //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sstv_sounds_root, ext);
                     foreach (string file in st_array)
                     {
-                        //if (debugging) Debug.Log("[CHATR] sstv file = " + file);
+                        //Log.dbg("sstv file = " + file);
                         
                         //tear out the whole root + directory + st + one more for final slash
                         int start_pos = sstv_sounds_root.Length;
@@ -2541,7 +2541,7 @@ namespace Chatterer
 
                         string short_file_name = file_name.Substring(0, end_pos);
 
-                        //if (debugging) Debug.Log("[CHATR] file_name = " + file_name);
+                        //Log.dbg("file_name = " + file_name);
 
                         if (ext == "*.mp3")
                         {
@@ -2552,11 +2552,11 @@ namespace Chatterer
                             //if (www_chatter != null)
                             //{
                             //    all_sstv_clips.Add(www_chatter.GetAudioClip(false));
-                            //    if (debugging) Debug.Log("[CHATR] " + mp3_path + " loaded OK");
+                            //    Log.dbg("" + mp3_path + " loaded OK");
                             //}
                             //else
                             {
-                                Debug.LogWarning("[CHATR] " + mp3_path + " load FAIL");
+                                Log.warn("{0} load FAIL", mp3_path);
                             }
                         }
                         else
@@ -2569,13 +2569,13 @@ namespace Chatterer
                             else
                             {
                                 //no ExistsAudioClip == false
-                                Debug.LogWarning("[CHATR] " + gdb_path + " load FAIL, GameDatabase.Instance.ExistsAudioClip(" + short_file_name + ") == false");
+                                Log.warn("{0} load FAIL, GameDatabase.Instance.ExistsAudioClip({1}) == false", gdb_path, short_file_name);
                             }
                         }
                     }
                 }
             }
-            if (all_sstv_clips.Count == 0) Debug.LogWarning("[CHATR] No SSTV clips found");
+            if (all_sstv_clips.Count == 0) Log.warn("No SSTV clips found");
         }
 
         private void load_chatter_audio()
@@ -2597,22 +2597,22 @@ namespace Chatterer
             {
                 chatter_exists = true;
 
-                if (debugging) Debug.Log("[CHATR] loading chatter audio...");
+                Log.dbg("loading chatter audio...");
 
                 for (k = 0; k < chatter_array.Count; k++)
                 {
                     if (Directory.Exists(chatter_root + chatter_array[k].directory))
                     {
                         //audioset directory found OK
-                        //if (debugging) Debug.Log("[CHATR] directory [" + chatter_array[k].directory + "] found OK");
+                        //Log.dbg("directory [" + chatter_array[k].directory + "] found OK");
                         foreach (string st in set_types)
                         {
                             //search through each set_type (capcom, capsule, capsuleF)
                             if (Directory.Exists(chatter_root + chatter_array[k].directory + "/" + st))
                             {
-                                //if (debugging) Debug.Log("[CHATR] directory [" + chatter_array[k].directory + "/" + st + "] found OK");
+                                //Log.dbg("directory [" + chatter_array[k].directory + "/" + st + "] found OK");
 
-                                //if (debugging) Debug.Log("[CHATR] clearing existing " + chatter_array[k].directory + "/" + st + " audio");
+                                //Log.dbg("clearing existing " + chatter_array[k].directory + "/" + st + " audio");
                                 if (st == "capcom") chatter_array[k].capcom.Clear();
                                 else if (st == "capsule") chatter_array[k].capsule.Clear();
                                 else if (st == "capsuleF") chatter_array[k].capsuleF.Clear();//clear any existing audio
@@ -2620,11 +2620,11 @@ namespace Chatterer
                                 string[] st_array;
                                 foreach (string ext in audio_file_ext)
                                 {
-                                    //if (debugging) Debug.Log("[CHATR] checking for " + ext + " files...");
+                                    //Log.dbg("checking for " + ext + " files...");
                                     st_array = Directory.GetFiles(chatter_root + chatter_array[k].directory + "/" + st + "/", ext);
                                     foreach (string file in st_array)
                                     {
-                                        //if (debugging) Debug.Log("[CHATR] file = " + file);
+                                        //Log.dbg("file = " + file);
                                         //[CHATR] file = C:/KSP/ksp-win-0-21-1/KSP_win/GameData/RBR/Sounds/apollo11/capcom\capcom_16.ogg
                                         //try it anyway
                                         //substring the capcom_16 out of file
@@ -2638,7 +2638,7 @@ namespace Chatterer
 
                                         file_name = file_name.Substring(0, end_pos);
 
-                                        //if (debugging) Debug.Log("[CHATR] file_name = " + file_name);
+                                        //Log.dbg("file_name = " + file_name);
 
                                         if (ext == "*.mp3")
                                         {
@@ -2650,17 +2650,17 @@ namespace Chatterer
                                             //    if (st == "capcom")
                                             //    {
                                             //        chatter_array[k].capcom.Add(www_chatter.GetAudioClip(false));
-                                            //        //if (debugging) Debug.Log("[CHATR] " + mp3_path + " loaded OK");
+                                            //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //    else if (st == "capsule")
                                             //    {
                                             //        chatter_array[k].capsule.Add(www_chatter.GetAudioClip(false));
-                                            //        //if (debugging) Debug.Log("[CHATR] " + mp3_path + " loaded OK");
+                                            //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //    else if (st == "capsuleF")
                                             //    {
                                             //        chatter_array[k].capsuleF.Add(www_chatter.GetAudioClip(false));
-                                            //        //if (debugging) Debug.Log("[CHATR] " + mp3_path + " loaded OK");
+                                            //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //}
                                         }
@@ -2672,23 +2672,23 @@ namespace Chatterer
                                                 if (st == "capcom")
                                                 {
                                                     chatter_array[k].capcom.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //if (debugging) Debug.Log("[CHATR] " + gdb_path + " loaded OK");
+                                                    //Log.dbg("" + gdb_path + " loaded OK");
                                                 }
                                                 else if (st == "capsule")
                                                 {
                                                     chatter_array[k].capsule.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //if (debugging) Debug.Log("[CHATR] " + gdb_path + " loaded OK");
+                                                    //Log.dbg("" + gdb_path + " loaded OK");
                                                 }
                                                 else if (st == "capsuleF")
                                                 {
                                                     chatter_array[k].capsuleF.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //if (debugging) Debug.Log("[CHATR] " + gdb_path + " loaded OK");
+                                                    //Log.dbg("" + gdb_path + " loaded OK");
                                                 }
                                             }
                                             else
                                             {
                                                 //no audio exists at gdb_path
-                                                Debug.LogWarning("[CHATR] " + gdb_path + " load FAIL, trying old method");
+                                                Log.warn("{0} load FAIL, trying old method", gdb_path);
                                             }
                                         }
                                     }
@@ -2696,14 +2696,14 @@ namespace Chatterer
                             }
                             else
                             {
-                                Debug.LogWarning("[CHATR] directory [" + chatter_array[k].directory + "/" + st + "] NOT found, skipping...");
+                                Log.warn("directory [{0}/{1}] NOT found, skipping...", chatter_array[k].directory, st);
                             }
                         }
                     }
                     else
                     {
                         //audioset directory NOT found
-                        Debug.LogWarning("[CHATR] directory [" + chatter_array[k].directory + "] NOT found, skipping...");
+                        Log.warn("directory [{0}] NOT found, skipping...", chatter_array[k].directory);
                     }
                 }
             }
@@ -2723,7 +2723,7 @@ namespace Chatterer
                 string[] st_array;
                 foreach (string ext in audio_file_ext)
                 {
-                    //if (debugging) Debug.Log("[CHATR] checking for " + ext + " files...");
+                    //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sounds_path, ext);
                     foreach (string file in st_array)
                     {
@@ -2740,19 +2740,19 @@ namespace Chatterer
                             dict_background_samples.Add(file_name, GameDatabase.Instance.GetAudioClip(gdb_path));
                             dict_background_samples2.Add(GameDatabase.Instance.GetAudioClip(gdb_path), file_name);
                             //audio_list.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                            //if (debugging) Debug.Log("[muziker] " + gdb_path + " loaded OK");
+                            //Log.dbg("[muziker] " + gdb_path + " loaded OK");
                         }
                         else
                         {
                             //no ExistsAudioClip == false
-                            Debug.LogWarning("[CHATR] Could not load audio " + gdb_path);
+                            Log.warn("Could not load audio {0}", gdb_path);
                         }
                     }
                 }
             }
             else
             {
-                Debug.LogWarning("Directory '" + sounds_path + "' could not be found");
+                Log.warn("Directory '{0}' could not be found", sounds_path);
             }
         }
 
@@ -2768,7 +2768,7 @@ namespace Chatterer
                 string[] st_array;
                 foreach (string ext in audio_file_ext)
                 {
-                    //if (debugging) Debug.Log("[CHATR] checking for " + ext + " files...");
+                    //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sounds_path, ext);
                     foreach (string file in st_array)
                     {
@@ -2786,17 +2786,17 @@ namespace Chatterer
                             dict_soundscape_samples2.Add(GameDatabase.Instance.GetAudioClip(gdb_path), file_name);
                             //audio_soundscape.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
                             //audio_list.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                            //if (debugging) Debug.Log("[muziker] " + gdb_path + " loaded OK");
+                            //Log.dbg("[muziker] " + gdb_path + " loaded OK");
                         }
                         else
                         {
                             //no ExistsAudioClip == false
-                            Debug.LogWarning("[CHATR] Could not load audio " + gdb_path + " : Check installation path.");
+                            Log.warn("Could not load audio {0} : Check installation path.", gdb_path);
                         }
                     }
                 }
             }
-            else if (debugging) Debug.Log("Directory '" + sounds_path + "' could not be found, skipping.");
+            else Log.dbg("Directory '{0}' could not be found, skipping.", sounds_path);
         }
 
         //Timer functions
@@ -2808,7 +2808,7 @@ namespace Chatterer
             else if (bm.loose_freq == 4) bm.loose_timer_limit = rand.Next(15, 31);
             else if (bm.loose_freq == 5) bm.loose_timer_limit = rand.Next(5, 16);
             else if (bm.loose_freq == 6) bm.loose_timer_limit = rand.Next(1, 6);
-            //if (debugging) Debug.Log("[CHATR] new beep loose timer limit set: " + bm.loose_timer_limit);
+            //Log.dbg("new beep loose timer limit set: " + bm.loose_timer_limit);
         }
 
         private void new_sstv_loose_timer_limit()
@@ -2817,7 +2817,7 @@ namespace Chatterer
             else if (sstv_freq == 2) sstv_timer_limit = rand.Next(900, 1801);   //15-30m
             else if (sstv_freq == 3) sstv_timer_limit = rand.Next(300, 901);    //5-15m
             else if (sstv_freq == 4) sstv_timer_limit = rand.Next(120, 301);    //2-5m
-            if (debugging) Debug.Log("[CHATR] new sstv timer limit set: " + sstv_timer_limit.ToString("F0"));
+            Log.dbg("new sstv timer limit set: {0:0}", sstv_timer_limit);
         }
 
         private void new_soundscape_loose_timer_limit()
@@ -2825,13 +2825,13 @@ namespace Chatterer
             if (aae_soundscape_freq == 1) aae_soundscape_timer_limit = rand.Next(300, 601);   //5-10m
             if (aae_soundscape_freq == 2) aae_soundscape_timer_limit = rand.Next(120, 301);   //2-5m
             if (aae_soundscape_freq == 3) aae_soundscape_timer_limit = rand.Next(60, 121);   //1-2m
-            if (debugging) Debug.Log("[CHATR] new soundscape1 timer limit set: " + aae_soundscape_timer_limit.ToString("F0"));
+            Log.dbg("new soundscape1 timer limit set: {0:0}", aae_soundscape_timer_limit);
         }
 
         //Chatter functions
         private void load_toggled_chatter_sets()
         {
-            //if (debugging) Debug.Log("[CHATR] loading toggled sets...");
+            //Log.dbg("loading toggled sets...");
             //load audio into current from sets that are toggled on
             current_capcom_chatter.Clear();
             current_capsule_chatter.Clear();
@@ -2848,7 +2848,7 @@ namespace Chatterer
                 }
             }
 
-            if (debugging) Debug.Log("[CHATR] toggled sets loaded OK");
+            Log.dbg("toggled sets loaded OK");
         }
 
         private void set_new_delay_between_exchanges()
@@ -2858,7 +2858,7 @@ namespace Chatterer
             else if (chatter_freq == 3) secs_between_exchanges = rand.Next(60, 91);
             else if (chatter_freq == 4) secs_between_exchanges = rand.Next(30, 61);
             else if (chatter_freq == 5) secs_between_exchanges = rand.Next(10, 31);
-            if (debugging) Debug.Log("[CHATR] new delay between exchanges: " + secs_between_exchanges.ToString("F0"));
+            Log.dbg("new delay between exchanges: {0:0}", secs_between_exchanges);
         }
 
         private void initialize_new_exchange()
@@ -2903,9 +2903,9 @@ namespace Chatterer
                 response_chatter_index = current_capcom_clip;
             }
             if (initial_chatter_set.Count > 0) initial_chatter.clip = initial_chatter_set[initial_chatter_index];
-            else Debug.LogWarning("[CHATR] Initial chatter set is empty");
+            else Log.warn("Initial chatter set is empty");
             if (response_chatter_set.Count > 0) response_chatter.clip = response_chatter_set[response_chatter_index];
-            else Debug.LogWarning("[CHATR] Response chatter set is empty");
+            else Log.warn("Response chatter set is empty");
         }
 
         private void load_radio()
@@ -2934,7 +2934,7 @@ namespace Chatterer
             //        {
             //            yep_yepsource.clip = www_yepyep.GetAudioClip(false);
             //            //SavWav.Save("radio2", yep_yepsource.clip);
-            //            if (debugging) Debug.Log("[CHATR] radio_yep_yep loaded OK");
+            //            Log.dbg("radio_yep_yep loaded OK");
             //            radio_loaded = true;
             //            yep_yep_loaded = true;
             //        }
@@ -3063,7 +3063,7 @@ namespace Chatterer
             _filter.AddValue("lf_reference", source.reverb_filter.lfReference);
             beepsource_clipboard.AddNode(_filter);
 
-            if (debugging) Debug.Log("[CHATR] single beepsource values copied to beepsource_clipboard");
+            Log.dbg("single beepsource values copied to beepsource_clipboard");
         }
 
         private void paste_beepsource_values(BeepSource source)
@@ -3150,7 +3150,7 @@ namespace Chatterer
                     if (filter.HasValue("lf_reference")) source.reverb_filter.lfReference = Single.Parse(filter.GetValue("lf_reference"));
                 }
             }
-            if (debugging) Debug.Log("[CHATR] single beepsource values pasted from beepsource_clipboard");
+            Log.dbg("single beepsource values pasted from beepsource_clipboard");
         }
         
         //Set some default stuff
@@ -3172,7 +3172,7 @@ namespace Chatterer
             chatter_array[3].directory = "valentina";
             chatter_array[3].is_active = true;
 
-            if (debugging) Debug.Log("[CHATR] audioset defaults added :: new count = " + chatter_array.Count);
+            Log.dbg("audioset defaults added :: new count = {0}", chatter_array.Count);
         }
 
         private void add_default_beepsources()
@@ -3270,7 +3270,7 @@ namespace Chatterer
         {
             if (yep_yep == null)
             {
-                Debug.Log("radio_check, yep_yep is null");
+                Log.info("radio_check, yep_yep is null");
                 yep_yep = "";
             }
             foreach (char c in Input.inputString)
@@ -3301,7 +3301,7 @@ namespace Chatterer
 
             if (http_update_check && yep_yep == "radio" && yep_yepsource.isPlaying == false)
             {
-                if (debugging) Debug.Log("[CHATR] play radio");
+                Log.dbg("play radio");
 
 
                 //need a bool that radio_yepyep is loaded ok
@@ -3332,7 +3332,7 @@ namespace Chatterer
         //Main
         public void Awake()
         {
-            if (debugging) Debug.Log("[CHATR] Awake() starting...");
+            Log.dbg("Awake() starting...");
 
             chatter_player = new GameObject();
             sstv_player = new GameObject();
@@ -3355,13 +3355,13 @@ namespace Chatterer
 
             if (Directory.Exists(settings_path))
             {
-                if (debugging) Debug.Log("[CHATR] " + settings_path + " exists");
+                Log.dbg("{0} exists", settings_path);
             }
             else
             {
-                if (debugging) Debug.Log("[CHATR] " + settings_path + " does not exist");
+                Log.dbg("{0} does not exist", settings_path);
                 Directory.CreateDirectory(settings_path);
-                if (debugging) Debug.Log("[CHATR] " + settings_path + " created");
+                Log.dbg("{0} created", settings_path);
             }
 
             //Filters need to be added here BEFORE load_settings() or nullRef when trying to apply filter settings to non-existant filters
@@ -3415,11 +3415,11 @@ namespace Chatterer
             {
                 aae_breathing_exist = true;
                 aae_breathing.clip = GameDatabase.Instance.GetAudioClip(breathing_path);
-                if (debugging) Debug.Log("[CHATR] " + breathing_path + " loaded OK");
+                Log.dbg("{0} loaded OK", breathing_path);
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] " + breathing_path + " not found");
+                Log.warn("{0} not found", breathing_path);
             }
 
             //AAE airlock
@@ -3431,11 +3431,11 @@ namespace Chatterer
             {
                 aae_airlock_exist = true;
                 aae_airlock.clip = GameDatabase.Instance.GetAudioClip(airlock_path);
-                if (debugging) Debug.Log("[CHATR] " + airlock_path + " loaded OK");
+                Log.dbg("{0} loaded OK", airlock_path);
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] " + airlock_path + " not found");
+                Log.warn("{0} not found", airlock_path);
             }
 
             //AAE wind
@@ -3447,11 +3447,11 @@ namespace Chatterer
             {
                 aae_wind_exist = true;
                 aae_wind.clip = GameDatabase.Instance.GetAudioClip(wind_path);
-                if (debugging) Debug.Log("[CHATR] " + wind_path + " loaded OK");
+                Log.dbg("{0} loaded OK", wind_path);
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] " + wind_path + " not found");
+                Log.warn("{0} not found", wind_path);
             }
 
             //yepyep
@@ -3467,11 +3467,11 @@ namespace Chatterer
             if (GameDatabase.Instance.ExistsAudioClip(landing_path))
             {
                 landingsource.clip = GameDatabase.Instance.GetAudioClip(landing_path);
-                if (debugging) Debug.Log("[CHATR] " + landing_path + " loaded OK");
+                Log.dbg("{0} loaded OK", landing_path);
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] " + landing_path + " not found");
+                Log.warn("{0} not found", landing_path);
             }
 
 
@@ -3479,7 +3479,7 @@ namespace Chatterer
             load_beep_audio();      //this must run before loading settings (else no beep clips to assign to sources))
 
             if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/line_512x4")) line_512x4 = GameDatabase.Instance.GetTexture("Chatterer/Textures/line_512x4", false);
-            else Debug.LogWarning("Texture 'line_512x4' is missing!");
+            else Log.warn("Texture 'line_512x4' is missing!");
 
             // initialise launcherButton textures
             if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_TX")) chatterer_button_TX = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_TX", false);
@@ -3539,8 +3539,8 @@ namespace Chatterer
             GameEvents.onGamePause.Add(OnGamePause);
             GameEvents.onGameUnpause.Add(OnGameUnpause);
 
-            if (debugging) Debug.Log("[CHATR] Awake() has finished...");
-            Debug.Log("[CHATR] Chatterer (v." + this_version + ") loaded.");
+            Log.dbg("Awake() has finished...");
+            Log.info("Chatterer (v.{0}) loaded.", this_version);
         }
 
         private void Start()
@@ -3550,7 +3550,7 @@ namespace Chatterer
                 OnGUIApplicationLauncherReady();
             }
 
-            if (debugging) Debug.Log("[CHATR] Starting an exchange : Hello !");
+            Log.dbg("Starting an exchange : Hello !");
             begin_exchange(0); // Trigger an exchange on Start to say hello
         }
 
@@ -3579,10 +3579,10 @@ namespace Chatterer
                 //sample selector one-time play
                 if (OTP_playing && OTP_source.audiosource.isPlaying == false)
                 {
-                    if (debugging) Debug.Log("[CHATR] one-time play has finished");
+                    Log.dbg("one-time play has finished");
                     OTP_playing = false;
                     OTP_source.audiosource.clip = OTP_stored_clip;
-                    //if (debugging) Debug.Log("[CHATR] OTP_source.current_clip = " + OTP_source.current_clip);
+                    //Log.dbg("OTP_source.current_clip = {0}", OTP_source.current_clip);
                     //set_beep_clip(OTP_source);
                 }
 
@@ -3655,7 +3655,7 @@ namespace Chatterer
                             //continuous loop of clips
                             if (aae_soundscape.isPlaying == false)
                             {
-                                if (debugging) Debug.Log("[CHATR] playing next soundscape clip in continuous loop...");
+                                Log.dbg("playing next soundscape clip in continuous loop...");
                                 set_soundscape_clip();
                                 aae_soundscape.Play();
                             }
@@ -3672,7 +3672,7 @@ namespace Chatterer
                                 aae_soundscape_timer += Time.deltaTime;
                                 if (aae_soundscape_timer > aae_soundscape_timer_limit)
                                 {
-                                    if (debugging) Debug.Log("[CHATR] soundscape1 timer limit reached, playing next clip...");
+                                    Log.dbg("soundscape1 timer limit reached, playing next clip...");
                                     set_soundscape_clip();
                                     aae_soundscape.Play();
                                     aae_soundscape_timer = 0;   //reset timer
@@ -3688,12 +3688,12 @@ namespace Chatterer
                 {
                     if (vessel.vesselType == VesselType.EVA && aae_breathing.isPlaying == false)
                     {
-                        if (debugging) Debug.Log("[CHATR] breathingsource.Play() loop has started");
+                        Log.dbg("breathingsource.Play() loop has started");
                         aae_breathing.Play();
                     }
                     if (vessel.vesselType != VesselType.EVA && aae_breathing.isPlaying)
                     {
-                        if (debugging) Debug.Log("[CHATR] No longer EVA, breathingsource.Stop()");
+                        Log.dbg("No longer EVA, breathingsource.Stop()");
                         aae_breathing.Stop();
                     }
                 }
@@ -3709,7 +3709,7 @@ namespace Chatterer
                         //play the audio if not playing already
                         if (aae_wind.isPlaying == false)
                         {
-                            if (debugging) Debug.Log("[CHATR] aae_wind.Play()");
+                            Log.dbg("aae_wind.Play()");
                             aae_wind.loop = true;
                             aae_wind.Play();
                         }
@@ -3719,7 +3719,7 @@ namespace Chatterer
                         //stop when out of atmosphere
                         if (aae_wind.isPlaying)
                         {
-                            if (debugging) Debug.Log("[CHATR] aae_wind.Stop()");
+                            Log.dbg("aae_wind.Stop()");
                             if (aae_wind.isPlaying) aae_wind.Stop();
                         }
                     }
@@ -3737,7 +3737,7 @@ namespace Chatterer
                     //insta-sstv activated
                     if ((inRadioContact) && (insta_sstv_key_just_changed == false && Input.GetKeyDown(insta_sstv_key) && sstv.isPlaying == false))
                     {
-                        if (debugging) Debug.Log("[CHATR] beginning exchange,insta-SSTV");
+                        Log.dbg("beginning exchange,insta-SSTV");
                         if (exchange_playing)
                         {
                             //stop and reset any currently playing chatter
@@ -3754,7 +3754,7 @@ namespace Chatterer
                             sstv_timer = 0;
                             new_sstv_loose_timer_limit();
                         }
-                        else Debug.LogWarning("[CHATR] No SSTV clips to play");
+                        else Log.warn("No SSTV clips to play");
                     }
 
                     //timed/on science sstv
@@ -3808,7 +3808,7 @@ namespace Chatterer
                                     sstv.clip = all_sstv_clips[rand.Next(0, all_sstv_clips.Count)];
                                     sstv.Play();
 
-                                    if (debugging) Debug.Log("[CHATR] beginning exchange,science-SSTV...");
+                                    Log.dbg("beginning exchange,science-SSTV...");
                                 }
 
                                 science_transmitted = false;
@@ -3881,7 +3881,7 @@ namespace Chatterer
                                         if (sstv.isPlaying || ((initial_chatter.isPlaying || response_chatter.isPlaying) && disable_beeps_during_chatter)) return;   //no beep under these conditions
                                         else
                                         {
-                                            //if (debugging) Debug.Log("[CHATR] timer limit reached, playing source " + bm.beep_name);
+                                            //Log.dbg("timer limit reached, playing source {0}", bm.beep_name);
                                             bm.audiosource.Play();  //else beep
                                             SetAppLauncherButtonTexture(chatterer_button_SSTV);
                                         }
@@ -3937,11 +3937,11 @@ namespace Chatterer
                 //do insta-chatter if insta-chatter chatter key is pressed
                 if (insta_chatter_key_just_changed == false && Input.GetKeyDown(insta_chatter_key))
                 {
-                    if (debugging) Debug.Log("[CHATR] beginning exchange,insta-chatter");
+                    Log.dbg("beginning exchange,insta-chatter");
 
                     if (exchange_playing == true)
                     {
-                        if (debugging) Debug.Log("[CHATR] insta-chatter : exchange already playing, be patient ...");
+                        Log.dbg("insta-chatter : exchange already playing, be patient ...");
                         
                     }
                     else begin_exchange(0);
@@ -3955,7 +3955,7 @@ namespace Chatterer
 
                     if (secs_since_last_exchange > secs_between_exchanges && chatter_freq > 0 && sstv.isPlaying == false)
                     {
-                        if (debugging) Debug.Log("[CHATR] beginning exchange,auto");
+                        Log.dbg("beginning exchange,auto");
                         begin_exchange(0);
                     }
                 }
@@ -4011,7 +4011,7 @@ namespace Chatterer
             if (insta_chatter_key_just_changed == false && exchange_playing == false && sstv.isPlaying == false)
             {
                 //no chatter or sstv playing, play insta-chatter
-                if (debugging) Debug.Log("[CHATR] beginning exchange,insta-chatter");
+                Log.dbg("beginning exchange,insta-chatter");
 
                 pod_begins_exchange = true;
                 begin_exchange(0);

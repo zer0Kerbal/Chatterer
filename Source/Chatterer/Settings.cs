@@ -89,7 +89,7 @@ namespace Chatterer
         private void save_plugin_settings()
         {
             //these values are not saved to vessel.cfg ever and are considered global
-            //if (debugging) Debug.Log("[CHATR] adding plugin settings to ConfigNode for write");
+            //Log.dbg("adding plugin settings to ConfigNode for write");
             plugin_settings_node = new ConfigNode();
             plugin_settings_node.name = "SETTINGS";
             plugin_settings_node.AddValue("debugging", debugging);
@@ -108,19 +108,19 @@ namespace Chatterer
 
             //save plugin.cfg
             plugin_settings_node.Save(settings_path + "plugin.cfg");
-            if (debugging) Debug.Log("[CHATR] plugin settings saved to disk");
+            Log.dbg("plugin settings saved to disk");
 
             //update vessel_settings.cfg
             if (use_vessel_settings)
             {
                 write_vessel_settings();
-                if (debugging) Debug.Log("[CHATR] this vessel settings saved to disk");
+                Log.dbg("this vessel settings saved to disk");
             }
         }
 
         private void load_plugin_settings()
         {
-            if (debugging) Debug.Log("[CHATR] load_plugin_settings() START");
+            Log.dbg("load_plugin_settings() START");
 
             destroy_all_beep_players();
             chatter_array.Clear();
@@ -131,7 +131,7 @@ namespace Chatterer
 
             if (plugin_settings_node != null)
             {
-                if (debugging) Debug.Log("[CHATR] plugin_settings != null");
+                Log.dbg("plugin_settings != null");
                 //Load settings specific to plugin.cfg
                 if (plugin_settings_node.HasValue("debugging")) debugging = Boolean.Parse(plugin_settings_node.GetValue("debugging"));
                 if (plugin_settings_node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
@@ -149,35 +149,35 @@ namespace Chatterer
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] plugin.cfg missing or unreadable");
+                Log.error("plugin.cfg missing or unreadable");
             }
 
             //if (chatter_exists && chatter_array.Count == 0)
             if (chatter_array.Count == 0)
             {
-                if (debugging) Debug.Log("[CHATR] No audiosets found in config, adding defaults");
+                Log.dbg("No audiosets found in config, adding defaults");
                 add_default_audiosets();
                 load_chatter_audio();   //load audio in case there is none
             }
 
             if (beeps_exists && beepsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] beepsource_list.Count == 0, adding default 3");
+                Log.warn("beepsource_list.Count == 0, adding default 3");
                 add_default_beepsources();
             }
 
             if (aae_backgrounds_exist && backgroundsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] backgroundsource_list.Count == 0, adding default 2");
+                Log.warn("backgroundsource_list.Count == 0, adding default 2");
                 add_default_backgroundsources();
             }
 
-            if (debugging) Debug.Log("[CHATR] load_plugin_settings() END");
+            Log.dbg("load_plugin_settings() END");
         }
 
         private void load_plugin_defaults()
         {
-            if (debugging) Debug.Log("[CHATR] load_plugin_defaults() START");
+            Log.dbg("load_plugin_defaults() START");
 
             destroy_all_beep_players();
             chatter_array.Clear();
@@ -188,7 +188,7 @@ namespace Chatterer
 
             if (plugin_settings_node != null)
             {
-                if (debugging) Debug.Log("[CHATR] plugin_defaults != null");
+                Log.dbg("plugin_defaults != null");
                 //Load settings specific to plugin.cfg
                 if (plugin_settings_node.HasValue("debugging")) debugging = Boolean.Parse(plugin_settings_node.GetValue("debugging"));
                 if (plugin_settings_node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
@@ -206,30 +206,30 @@ namespace Chatterer
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] plugin_defautls.cfg missing or unreadable");
+                Log.error("plugin_defautls.cfg missing or unreadable");
             }
 
             //if (chatter_exists && chatter_array.Count == 0)
             if (chatter_array.Count == 0)
             {
-                if (debugging) Debug.Log("[CHATR] No audiosets found in config, adding defaults");
+                Log.dbg("No audiosets found in config, adding defaults");
                 add_default_audiosets();
                 load_chatter_audio();   //load audio in case there is none
             }
 
             if (beeps_exists && beepsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] beepsource_list.Count == 0, adding default 3");
+                Log.warn("beepsource_list.Count == 0, adding default 3");
                 add_default_beepsources();
             }
 
             if (aae_backgrounds_exist && backgroundsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] backgroundsource_list.Count == 0, adding default 2");
+                Log.warn("backgroundsource_list.Count == 0, adding default 2");
                 add_default_backgroundsources();
             }
 
-            if (debugging) Debug.Log("[CHATR] load_plugin_defaults() END");
+            Log.dbg("load_plugin_defaults() END");
         }
 
         //Functions to handle settings shared by plugin.cfg and vessel.cfg
@@ -444,7 +444,7 @@ namespace Chatterer
 
         private void load_shared_settings(ConfigNode node)
         {
-            if (debugging) Debug.Log("[CHATR] load_shared_settings() START");
+            Log.dbg("load_shared_settings() START");
 
             destroy_all_beep_players();
             beepsource_list.Clear();
@@ -582,7 +582,7 @@ namespace Chatterer
                     i++;
                 }
             }
-            if (debugging) Debug.Log("[CHATR] audiosets found: " + chatter_array.Count + " :: reloading chatter audio");
+            Log.dbg("audiosets found: " + chatter_array.Count + " :: reloading chatter audio");
             load_chatter_audio();   //reload audio
 
             //Chatter filters
@@ -593,7 +593,6 @@ namespace Chatterer
                     if (_filter.HasValue("enabled"))
                     {
                         chatter_chorus_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                        //if (debugging) Debug.Log("[CHATR] beepsource index: " + x.ToString() + " :: chorus_enabled = " + beepsource_list[x].chorus_filter.enabled);
                     }
                     if (_filter.HasValue("dry_mix")) chatter_chorus_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
                     if (_filter.HasValue("wet_mix_1")) chatter_chorus_filter.wetMix1 = Single.Parse(_filter.GetValue("wet_mix_1"));
@@ -651,7 +650,7 @@ namespace Chatterer
             {
                 if (_source.name == "BEEPSOURCE")
                 {
-                    if (debugging) Debug.Log("[CHATR] loading beepsource");
+                    Log.dbg("loading beepsource");
                     add_new_beepsource();
 
                     int x = beepsource_list.Count - 1;
@@ -691,7 +690,7 @@ namespace Chatterer
                             if (_filter.HasValue("enabled"))
                             {
                                 beepsource_list[x].chorus_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                                //if (debugging) Debug.Log("[CHATR] beepsource index: " + x.ToString() + " :: chorus_enabled = " + beepsource_list[x].chorus_filter.enabled);
+                                Log.dbg("beepsource index: {0} :: chorus_enabled = {1}", x, beepsource_list[x].chorus_filter.enabled);
                             }
                             if (_filter.HasValue("dry_mix")) beepsource_list[x].chorus_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
                             if (_filter.HasValue("wet_mix_1")) beepsource_list[x].chorus_filter.wetMix1 = Single.Parse(_filter.GetValue("wet_mix_1"));
@@ -745,13 +744,13 @@ namespace Chatterer
                     }
                 }
             }
-            if (debugging) Debug.Log("[CHATR] load_shared_settings() END");
+            Log.dbg("load_shared_settings() END");
         }
 
         //Functions for per-vessel settings
         private void new_vessel_node(Vessel v)
         {
-            //if (debugging) Debug.Log("[CHATR] new_vessel_node() START");
+            Log.dbg("new_vessel_node() START");
             ConfigNode vessel_node = new ConfigNode();
 
             //cn_vessel.name = v.id.ToString();
@@ -766,35 +765,35 @@ namespace Chatterer
             vessel_settings_node.AddNode(vessel_node);
             vessel_settings_node.Save(settings_path + "vessels.cfg");
             
-            //if (debugging) Debug.Log("[CHATR] new_vessel_node() :: vessel_node added to vessel_settings_node");
+            Log.dbg("new_vessel_node() :: vessel_node added to vessel_settings_node");
         }
 
         private void load_vessel_settings_node()
         {
-            //if (debugging) Debug.Log("[CHATR] START load_vessel_settings_node()");
+            Log.dbg("START load_vessel_settings_node()");
             vessel_settings_node = ConfigNode.Load(settings_path + "vessels.cfg");
 
             if (vessel_settings_node != null)
             {
-                if (debugging) Debug.Log("[CHATR] load_vessel_settings_node() :: vessel_settings.cfg loaded OK");
+                Log.dbg("load_vessel_settings_node() :: vessel_settings.cfg loaded OK");
                 //now search for a matching vessel_id
                 //search_vessel_settings_node();
             }
             else
             {
-                if (debugging) Debug.LogWarning("[CHATR] load_vessel_settings_node() :: vessel_settings.cfg is null, creating a new one");
+                Log.info("load_vessel_settings_node() :: vessel_settings.cfg is null, creating a new one");
                 vessel_settings_node = new ConfigNode();
                 vessel_settings_node.name = "FLIGHTS";
                 new_vessel_node(vessel);  //add current vessel to vessel_settings_node
                 //save_vessel_settings_node();
-                //if (debugging) Debug.Log("[CHATR] load_vessel_settings_node() :: current vessel node saved to vessel_settings.cfg");
+                Log.dbg("load_vessel_settings_node() :: current vessel node saved to vessel_settings.cfg");
             }
 
         }
 
         private void load_vessel_node(ConfigNode node)
         {
-            if (debugging) Debug.Log("[CHATR] load_vessel_node() :: loading vessel settings for this vessel from node");
+            Log.dbg("load_vessel_node() :: loading vessel settings for this vessel from node");
 
             //destroy_all_beep_players();
             //destroy_all_background_players();
@@ -803,53 +802,53 @@ namespace Chatterer
 
             if (chatter_array.Count == 0)
             {
-                if (debugging) Debug.Log("[CHATR] No audiosets found in config, adding defaults");
+                Log.dbg("No audiosets found in config, adding defaults");
                 add_default_audiosets();
             }
 
             if (beepsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] beepsource_list.Count == 0, adding default 3");
+                Log.warn("beepsource_list.Count == 0, adding default 3");
                 add_default_beepsources();
             }
 
             if (backgroundsource_list.Count == 0)
             {
-                if (debugging) Debug.LogWarning("[CHATR] backgroundsource_list.Count == 0, adding default 2");
+                Log.warn("backgroundsource_list.Count == 0, adding default 2");
                 add_default_backgroundsources();
             }
 
-            if (debugging) Debug.Log("[CHATR] load_vessel_node() :: vessel settings loaded OK : total beep sources = " + beepsource_list.Count);
+            Log.dbg("load_vessel_node() :: vessel settings loaded OK : total beep sources = " + beepsource_list.Count);
         }
 
         private void search_vessel_settings_node()
         {
-            if (debugging) Debug.Log("[CHATR] START search_vessel_settings_node()");
+            Log.dbg("START search_vessel_settings_node()");
 
             bool no_match = true;
 
-            if (debugging) Debug.Log("[CHATR] active vessel id = " + vessel.id.ToString());
+            Log.dbg("active vessel id = {0}" + vessel.id);
 
             foreach (ConfigNode n in vessel_settings_node.nodes)
             {
                 string val = n.GetValue("vessel_id");
-                if (debugging) Debug.Log("[CHATR] n.GetValue(\"vessel_id\") = " + n.GetValue("vessel_id"));
+                Log.dbg("n.GetValue(\"vessel_id\") = {0}", n.GetValue("vessel_id"));
                 if (val == vessel.id.ToString())
                 {
-                    if (debugging) Debug.Log("[CHATR] search_vessel_settings_node() :: vessel_id match");
+                    Log.dbg("search_vessel_settings_node() :: vessel_id match");
                     load_vessel_node(n);    //load vals
                     no_match = false;
                     break;
                 }
-                else if (debugging) Debug.Log("[CHATR] no match, continuing search...");
+                else Log.dbg("no match, continuing search...");
             }
             if (no_match)
             {
-                if (debugging) Debug.Log("[CHATR] finished search, no vessel_id match :: creating new node for this vessel");
+                Log.dbg("finished search, no vessel_id match :: creating new node for this vessel");
                 //temp_vessels_node = new ConfigNode();
                 new_vessel_node(vessel);
                 //save_vessel_settings_node();  //done in new_vessel_node
-                if (debugging) Debug.Log("[CHATR] new vessel node created and saved");
+                Log.dbg("new vessel node created and saved");
                 load_chatter_audio();   //load audio in case there is none
                 //return;
             }
@@ -865,20 +864,20 @@ namespace Chatterer
             //create a new node for the active vessel with its current settings
             //add new node to vessel_settings_node
             //save vessel_settings_node to .cfg
-            if (debugging) Debug.Log("[CHATR] writing vessel_settings node to disk");
+            Log.dbg("writing vessel_settings node to disk");
 
 
 
             ConfigNode all_but_curr_vessel = new ConfigNode();
 
-            if (debugging) Debug.Log("[CHATR] active vessel.id = " + vessel.id.ToString());
+            Log.dbg("active vessel.id = {0}", vessel.id);
             foreach (ConfigNode cn in vessel_settings_node.nodes)
             {
                 //
                 if (cn.HasValue("vessel_id"))
                 {
                     string val = cn.GetValue("vessel_id");
-                    if (debugging) Debug.Log("[CHATR] node vessel_id = " + val);
+                    Log.dbg("node vessel_id = {0}", val);
 
                     if (val != vessel.id.ToString())
                     {
@@ -886,7 +885,7 @@ namespace Chatterer
                         //add it to the list
 
                         all_but_curr_vessel.AddNode(cn);
-                        if (debugging) Debug.Log("[CHATR] write_vessel_settings() :: node vessel_id != vessel.id :: node vessel added to all_but_curr_vessel");
+                        Log.dbg("write_vessel_settings() :: node vessel_id != vessel.id :: node vessel added to all_but_curr_vessel");
                     }
                     //else
                     //{
@@ -897,20 +896,20 @@ namespace Chatterer
             //foreach (ConfigNode cn in vessel_settings_node.nodes)
             //{
             //vessel_settings_node.RemoveNodes("");
-            //    if (debugging) Debug.Log("[CHATR] old nodes removed");
+            //    Log.dbg("old nodes removed");
             //}
 
             vessel_settings_node = all_but_curr_vessel;
-            //if (debugging) Debug.Log("[CHATR] write_vessel_settings() :: vessel_settings node = all_but_curr_vessel");
+            Log.dbg("write_vessel_settings() :: vessel_settings node = all_but_curr_vessel");
 
             new_vessel_node(vessel);
-            //if (debugging) Debug.Log("[CHATR] write_vessel_settings() :: new node created using vessel and added to vessel_settings node");
+            Log.dbg("write_vessel_settings() :: new node created using vessel and added to vessel_settings node");
 
             //save_vessel_settings_node();
             vessel_settings_node.Save(settings_path + "vessels.cfg");
-            if (debugging) Debug.Log("[CHATR] write_vessel_settings() END :: vessel_settings node saved to vessel_settings.cfg");
+            Log.dbg("write_vessel_settings() END :: vessel_settings node saved to vessel_settings.cfg");
             //end func
-            if (debugging) Debug.Log("[CHATR] vessel_settings node saved to disk :: vessel node count = " + vessel_settings_node.nodes.Count);
+            Log.dbg("vessel_settings node saved to disk :: vessel node count = {0}", vessel_settings_node.nodes.Count);
         }
     }
 }
