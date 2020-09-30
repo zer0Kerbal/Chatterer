@@ -46,7 +46,16 @@ Detailed installation instructions are now on its own file (see the [In a Hurry]
 
 Please note the copyrights and trademarks in [NOTICE](./NOTICE)
 
+### Audio Credits
 
+Apollo 11 and STS-1 chatter created from audio found at the [NASA Audio Archive](https://archive.org/details/nasaaudiocollection). [[usage Information]](https://www.nasa.gov/audience/formedia/features/MP_Photo_Guidelines.html#.UjE20T9lodU)
+
+Russian chatter created from audio recorded by [Sven Grahn](http://www.svengrahn.pp.se/sounds/sounds.htm). [[usage Information]](https://pastebin.com/raw/2amNiAdr) [(local copy)](./Docs/LMJ/SvenGrahn.usageinformation.txt)
+
+Sound effects by acclivity, adneonlux, AGFX, AMPUL, Argitoth, be-steele, blaukreuz, bubaproducer, carbilicon, ch0cchi, Corsica_S, datwilightz, DJ Chronos, DodoDuck, DrNI, ERH, FreqMan, HerbertBoland, junggle, klankbeeld, laiskvorst, Leady, mario1298, m-o-m, NUpton, pera, plagasul, REC242, Setuniman, suonho, UdoPohlmann, yewbic, Zozzy
+
+Chatterer logo : modified from : http://jmtrivial.info/infographie/art-libre/ 
+ 
 ## UPSTREAM
 
 * [Iannic-ann-od](https://forum.kerbalspaceprogram.com/index.php?/profile/30460-iannic-ann-od/) ROOT

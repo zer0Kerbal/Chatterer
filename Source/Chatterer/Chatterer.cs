@@ -2,8 +2,9 @@
 //
 //    Chatterer a plugin for Kerbal Space Program from SQUAD
 //    (https://www.kerbalspaceprogram.com/)
+//    Copyright (C) 2020 LisiasT 
 //    Copyright (C) 2014 Athlonic 
-//    (original work and with permission from : Iannic-ann-od)
+//    Copyright (C) 2013 Iannic-ann-od
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -19,7 +20,6 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 
 
 /* DO ME
