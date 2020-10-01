@@ -1,5 +1,10 @@
 # Chatterer :: Change Log
 
+* 2019-1023: 0.9.98 (Athlonic) for KSP 1.8.2686
+		- Fixed some 1600+ error (due to .dll split & Net 4.x target)
+		- Fix for : new AudioClip(); not accepting 0 argument / compile error
+		- Recompiled for KSP 1.8.2686
+	+ [Warning : this version will not work on KSP version 1.7.x and older]
 * 2019-0915: 0.9.97_devBuild (Athlonic) for KSP ['1.7.3', '1.7.2', '1.7.1', '1.7', '1.6.1', '1.6.0', '1.5.1', '1.5'] PRE-RELEASE
 	+ No changelog provided
 * 2019-1023: 0.9.97 (Athlonic) for KSP ['1.7.3', '1.7.2', '1.7.1', '1.7', '1.6.1', '1.6.0', '1.5.1', '1.5']
