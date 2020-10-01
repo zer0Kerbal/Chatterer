@@ -1,5 +1,12 @@
 # Chatterer :: Change Log
 
+* 2015-0116: 0.8.1 (Athlonic) for KSP 0.90
+	+ Fixed RemoteTech v1.6.0 support (update RT first if you are still using
+	+ Removed RT delay before capsule initiating chatter exchange (silly me)
+	+ optimized code by using game events for EVA airlock sound [thanks to
+	+ Davorin]
+		- Fixed internal ambient sounds playing when focusing Flags [thanks to
+	+ Davorin]
 * 2014-1216: 0.8.0 (Athlonic) for KSP 0.90
 	+ recompiled for KSP v0.90
 	+ reduced pitch of EVA breathing (to sound less metallic)
