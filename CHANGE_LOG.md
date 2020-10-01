@@ -1,5 +1,20 @@
 # Chatterer :: Change Log
 
+* 2015-0713: 0.9.6 (Athlonic) for KSP ['1.0.4', '1.0.3', '1.0.2', '1.0.0']
+	+ Recompiled for KSP v1.0.4
+	+ Code optimizations more GameEvents/less onUpdate loop checks
+	+ Chatter gender is checked on exchange init rather than on vessel change
+	+ Fixed 2 exceptions which could happen in some situations
+	+ Hide GUI is now a global setting (no more per vessel based)
+	+ Added SSTV when science has been transmitted to KSC
+	+ Added "SSTV on science" toggle setting (under beep settings / on by
+	+ default)
+		- Reduced SSTV default volume from 25 to 15% to better match with other
+	+ sounds
+		- Fixed applauncherbutton textures handling(Now green actually means transmit
+	+ and blue receive, instead of initial chatter/answer)
+		- Made all audio stop when switching vessel and going to/coming from EVA
+	+ (finally)
 * 2015-0524: 0.9.5 (Athlonic) for KSP ['1.0.4', '1.0.3', '1.0.2', '1.0.0']
 		- fixed EXP spam on probes or no crew onbard.
 	+ (thanks taniwha)
