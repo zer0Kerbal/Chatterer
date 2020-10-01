@@ -531,51 +531,12 @@ namespace Chatterer
 
                     if (use_vessel_settings)
                     {
-                        ConfigNode all_but_prev_vessel = new ConfigNode();
-
                         Log.dbg("checking each vessel_id in vessel_settings_node");
-                        Log.dbg("prev_vessel.id = {0}", prev_vessel.id);
-                        foreach (ConfigNode _vessel in vessel_settings_node.nodes)
-                        {
-                            //search for previous vessel id
-                            if (_vessel.HasValue("vessel_id"))
-                            {
-                                string val = _vessel.GetValue("vessel_id");
 
-                                Log.dbg("node vessel_id = {0}", val);
-
-                                if (val != prev_vessel.id.ToString())
-                                {
-                                    //vessel_settings_node.RemoveNode(prev_vessel.id.ToString());
-                                    //Log.dbg("prev_vessel old node removed");
-                                    //temp_vessels_string = prev_vessel.id.ToString();
-                                    all_but_prev_vessel.AddNode(_vessel);
-                                    Log.dbg("OnVesselChange() :: node vessel_id != prev_vessel.id :: node vessel added to all_but_prev_vessel");
-                                }
-                                //else
-                                //{
-                                //    all_but_prev_vessel.AddNode(cn);
-                                //}
-                            }
-                        }
-                        //foreach (ConfigNode cn in vessel_settings_node.nodes)
-                        //{
-                        //vessel_settings_node.RemoveNodes("");
-                        //    Log.dbg("old nodes removed");
-                        //}
-
-                        vessel_settings_node = all_but_prev_vessel;
-                        //Log.dbg("OnVesselChange() :: vessel_settings node = all_but_prev_vessel");
-
-                        new_vessel_node(prev_vessel);
-                        //Log.dbg("OnVesselChange() :: new node created using prev_vessel and added to vessel_settings node");
-
-                        //save_vessel_settings_node();
-                        vessel_settings_node.Save(settings_path + "vessels.cfg");
+                        Log.dbg("Saving previous vessel {0}:{1}", prev_vessel.name, prev_vessel.id);
+                        write_vessel_settings(prev_vessel);
                         Log.dbg("OnVesselChange() :: vessel_settings node saved to vessel_settings.cfg");
 
-
-                        load_vessel_settings_node();    //reload with current vessel settings
                         search_vessel_settings_node();  //search for current vessel
                     }
 
@@ -590,10 +551,20 @@ namespace Chatterer
                         Log.dbg("OnVesselChange() FirstLoad :: calling load_vessel_settings_node()");
                         load_vessel_settings_node(); //load and search for settings for this vessel
                         Log.dbg("OnVesselChange() FirstLoad :: calling search_vessel_settings_node()");
-                        search_vessel_settings_node();
+                        if (!search_vessel_settings_node())
+                        {
+                            write_vessel_settings(vessel);
+                            search_vessel_settings_node();  //search for current vessel
+                        }
                     }
                 }
             }
+        }
+
+        void OnVesselDestroy(Vessel vessel)
+        {
+            Log.dbg("OnVesselDestroy() :: {0}:{1}", vessel.vesselName, vessel.vesselName);
+            remove_vessel_settings(vessel);
         }
 
         void OnStageSeparation(EventReport data)
@@ -721,6 +692,7 @@ namespace Chatterer
             GameEvents.onCrewOnEva.Remove(OnCrewOnEVA);
             GameEvents.onCrewBoardVessel.Remove(OnCrewBoard);
             GameEvents.onVesselChange.Remove(OnVesselChange);
+            GameEvents.onVesselDestroy.Remove(OnVesselDestroy);
             GameEvents.onStageSeparation.Remove(OnStageSeparation);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
             GameEvents.onVesselSOIChanged.Remove(OnVesselSOIChanged);
@@ -743,7 +715,7 @@ namespace Chatterer
         private void OnGUI() //start the GUI
         {
             if (debugging & !gui_running) Log.info("start_GUI()");
-            
+
             draw_GUI(); 
 
             gui_running = true;
@@ -751,8 +723,8 @@ namespace Chatterer
 
         private void stop_GUI() //stop the GUI (virtualy, is this actually still needed ?)
         {
-            Log.dbg("stop_GUI()");
-            
+            if (debugging) Log.info("stop_GUI()");
+
             gui_running = false;
         }
 
@@ -3340,17 +3312,6 @@ namespace Chatterer
             aae_soundscape_player = new GameObject();
             aae_ambient_player = new GameObject();
 
-            if (Directory.Exists(settings_path))
-            {
-                Log.dbg("{0} exists", settings_path);
-            }
-            else
-            {
-                Log.dbg("{0} does not exist", settings_path);
-                Directory.CreateDirectory(settings_path);
-                Log.dbg("{0} created", settings_path);
-            }
-
             //Filters need to be added here BEFORE load_settings() or nullRef when trying to apply filter settings to non-existant filters
             chatter_player.name = "rbr_chatter_player";
             initial_chatter = chatter_player.AddComponent<AudioSource>();
@@ -3510,6 +3471,7 @@ namespace Chatterer
             GameEvents.onCrewOnEva.Add(OnCrewOnEVA);
             GameEvents.onCrewBoardVessel.Add(OnCrewBoard);
             GameEvents.onVesselChange.Add(OnVesselChange);
+            GameEvents.onVesselDestroy.Add(OnVesselDestroy);
             GameEvents.onStageSeparation.Add(OnStageSeparation);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
             GameEvents.onVesselSOIChanged.Add(OnVesselSOIChanged);
@@ -3525,7 +3487,6 @@ namespace Chatterer
             GameEvents.onGameUnpause.Add(OnGameUnpause);
 
             Log.dbg("Awake() has finished...");
-            Log.info("Chatterer (v.{0}) loaded.", this_version);
         }
 
         private void Start()

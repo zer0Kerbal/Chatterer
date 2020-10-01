@@ -24,11 +24,15 @@
 using System;
 using UnityEngine;
 
+using Asset = KSPe.IO.Asset<Chatterer.Startup>;
+using Data =  KSPe.IO.Data<Chatterer.Startup>;
+
 namespace Chatterer
 {
     public partial class chatterer
     {
-        private bool debugging = false;      //lots of extra log info if true
+        // Lots and lots of extra debugging stuff
+        internal bool debugging = KSPe.Globals<Startup>.DebugMode;
 
         //Plugin settings
         //private bool power_available = true;
@@ -82,33 +86,23 @@ namespace Chatterer
         private ConfigNode beepsource_clipboard;
 
         //Settings nodes
-        private string settings_path;
-        private ConfigNode plugin_settings_node;
-        private ConfigNode vessel_settings_node;
+        
+        private readonly Data.ConfigNode plugin_settings = Data.ConfigNode.For("SETTINGS", "settings.cfg");
+        private readonly Data.ConfigNode vessel_settings = Data.ConfigNode.For("FLIGHTS", "vessel_settings.cfg");
 
         //Save/Load settings
         private void save_plugin_settings()
         {
             //these values are not saved to vessel.cfg ever and are considered global
             //Log.dbg("adding plugin settings to ConfigNode for write");
-            plugin_settings_node = new ConfigNode();
-            plugin_settings_node.name = "SETTINGS";
-            plugin_settings_node.AddValue("debugging", debugging);
-            plugin_settings_node.AddValue("hide_all_windows", hide_all_windows);
-            plugin_settings_node.AddValue("use_vessel_settings", use_vessel_settings);
-            plugin_settings_node.AddValue("useBlizzy78Toolbar", useBlizzy78Toolbar);
-            plugin_settings_node.AddValue("http_update_check", http_update_check);
-            plugin_settings_node.AddValue("disable_beeps_during_chatter", disable_beeps_during_chatter);
-            plugin_settings_node.AddValue("insta_chatter_key", insta_chatter_key);
-            plugin_settings_node.AddValue("insta_sstv_key", insta_sstv_key);
-            plugin_settings_node.AddValue("show_advanced_options", show_advanced_options);
-            plugin_settings_node.AddValue("aae_backgrounds_onlyinIVA", aae_backgrounds_onlyinIVA);
+            ConfigNode plugin_settings_node = plugin_settings.Node;
+
+            save_settings(plugin_settings_node);
 
             //also save values that are shared between the two configs
             save_shared_settings(plugin_settings_node);
 
-            //save plugin.cfg
-            plugin_settings_node.Save(settings_path + "plugin.cfg");
+            plugin_settings.Save();
             Log.dbg("plugin settings saved to disk");
 
             //update vessel_settings.cfg
@@ -127,26 +121,25 @@ namespace Chatterer
             chatter_array.Clear();
             beepsource_list.Clear();
 
-            plugin_settings_node = new ConfigNode();
-            plugin_settings_node = ConfigNode.Load(settings_path + "plugin.cfg");
+            // Force the creation of the file if no existent
+            if (plugin_settings.IsLoadable)
+                plugin_settings.Load();
+            else
+            {
+                Log.dbg("plugin_settings does not exists. Creating one from defaults.");
+                plugin_settings.Clear();
+                load_plugin_defaults();
+                save_plugin_settings();
+            }
+
+            ConfigNode plugin_settings_node = plugin_settings.Node;
 
             if (plugin_settings_node != null)
             {
                 Log.dbg("plugin_settings != null");
                 //Load settings specific to plugin.cfg
-                if (plugin_settings_node.HasValue("debugging")) debugging = Boolean.Parse(plugin_settings_node.GetValue("debugging"));
-                if (plugin_settings_node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
-                if (plugin_settings_node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(plugin_settings_node.GetValue("use_vessel_settings"));
-                if (plugin_settings_node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(plugin_settings_node.GetValue("useBlizzy78Toolbar"));
-                if (plugin_settings_node.HasValue("http_update_check")) http_update_check = Boolean.Parse(plugin_settings_node.GetValue("http_update_check"));
-                if (plugin_settings_node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(plugin_settings_node.GetValue("disable_beeps_during_chatter"));
-                if (plugin_settings_node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_chatter_key"));
-                if (plugin_settings_node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_sstv_key"));
-                if (plugin_settings_node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(plugin_settings_node.GetValue("show_advanced_options"));
-                if (plugin_settings_node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(plugin_settings_node.GetValue("aae_backgrounds_onlyinIVA"));
-
+                load_settings(plugin_settings_node);
                 load_shared_settings(plugin_settings_node); //load settings shared between both configs
-
             }
             else
             {
@@ -184,26 +177,29 @@ namespace Chatterer
             chatter_array.Clear();
             beepsource_list.Clear();
 
-            plugin_settings_node = new ConfigNode();
-            plugin_settings_node = ConfigNode.Load(settings_path + "plugin_defaults.cfg");
+            Asset.ConfigNode defaults = Asset.ConfigNode.For("DEFAULT_SETTINGS", "plugin_defaults.cfg");
+            ConfigNode plugin_settings_node = null;
+            if (defaults.IsLoadable)
+            {
+                defaults.Load();
+                plugin_settings_node = defaults.Node;
+            } else Log.error("No plugin_defaults.cfg found!");
 
             if (plugin_settings_node != null)
             {
                 Log.dbg("plugin_defaults != null");
                 //Load settings specific to plugin.cfg
-                if (plugin_settings_node.HasValue("debugging")) debugging = Boolean.Parse(plugin_settings_node.GetValue("debugging"));
-                if (plugin_settings_node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
-                if (plugin_settings_node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(plugin_settings_node.GetValue("use_vessel_settings"));
-                if (plugin_settings_node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(plugin_settings_node.GetValue("useBlizzy78Toolbar"));
-                if (plugin_settings_node.HasValue("http_update_check")) http_update_check = Boolean.Parse(plugin_settings_node.GetValue("http_update_check"));
-                if (plugin_settings_node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(plugin_settings_node.GetValue("disable_beeps_during_chatter"));
-                if (plugin_settings_node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_chatter_key"));
-                if (plugin_settings_node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_sstv_key"));
-                if (plugin_settings_node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(plugin_settings_node.GetValue("show_advanced_options"));
-                if (plugin_settings_node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(plugin_settings_node.GetValue("aae_backgrounds_onlyinIVA"));
+                if (defaults.Node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
+                if (defaults.Node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(plugin_settings_node.GetValue("use_vessel_settings"));
+                if (defaults.Node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(plugin_settings_node.GetValue("useBlizzy78Toolbar"));
+                if (defaults.Node.HasValue("http_update_check")) http_update_check = Boolean.Parse(plugin_settings_node.GetValue("http_update_check"));
+                if (defaults.Node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(plugin_settings_node.GetValue("disable_beeps_during_chatter"));
+                if (defaults.Node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_chatter_key"));
+                if (defaults.Node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_sstv_key"));
+                if (defaults.Node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(plugin_settings_node.GetValue("show_advanced_options"));
+                if (defaults.Node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(plugin_settings_node.GetValue("aae_backgrounds_onlyinIVA"));
 
-                load_shared_settings(plugin_settings_node); //load settings shared between both configs
-
+                load_shared_settings(defaults.Node); //load settings shared between both configs
             }
             else
             {
@@ -233,32 +229,51 @@ namespace Chatterer
             Log.dbg("load_plugin_defaults() END");
         }
 
+        private void save_settings(ConfigNode node)
+        {
+            node.SetValue("hide_all_windows", hide_all_windows, true);
+            node.SetValue("use_vessel_settings", use_vessel_settings, true);
+            node.SetValue("useBlizzy78Toolbar", useBlizzy78Toolbar, true);
+            node.SetValue("http_update_check", http_update_check, true);
+            node.SetValue("disable_beeps_during_chatter", disable_beeps_during_chatter, true);
+
+            // Unity **SUCKS**
+                if (node.HasValue("insta_chatter_key")) node.RemoveValue("insta_chatter_key");
+                node.AddValue("insta_chatter_key", insta_chatter_key);
+
+                if (node.HasValue("insta_sstv_key")) node.RemoveValue("insta_sstv_key");
+                node.AddValue("insta_sstv_key", insta_sstv_key);
+
+            node.SetValue("show_advanced_options", show_advanced_options, true);
+            node.SetValue("aae_backgrounds_onlyinIVA", aae_backgrounds_onlyinIVA, true);
+        }
+
         //Functions to handle settings shared by plugin.cfg and vessel.cfg
         private void save_shared_settings(ConfigNode node)
         {
-            node.AddValue("show_tooltips", show_tooltips);
-            node.AddValue("main_window_pos", main_window_pos.x + "," + main_window_pos.y);
-            node.AddValue("skin_index", skin_index);
-            node.AddValue("active_menu", active_menu);
-            //node.AddValue("remotetech_toggle", remotetech_toggle);
+            node.SetValue("show_tooltips", show_tooltips, true);
+            node.SetValue("main_window_pos", main_window_pos.x + "," + main_window_pos.y, true);
+            node.SetValue("skin_index", skin_index, true);
+            node.SetValue("active_menu", active_menu, true);
+            //node.SetValue("remotetech_toggle", remotetech_toggle, true;
 
-            node.AddValue("chatter_freq", chatter_freq);
-            node.AddValue("chatter_vol_slider", chatter_vol_slider);
-            node.AddValue("chatter_sel_filter", chatter_sel_filter);
-            node.AddValue("show_chatter_filter_settings", show_chatter_filter_settings);
-            node.AddValue("show_sample_selector", show_probe_sample_selector);
-            node.AddValue("chatter_reverb_preset_index", chatter_reverb_preset_index);
-            node.AddValue("chatter_filter_settings_window_pos", chatter_filter_settings_window_pos.x + "," + chatter_filter_settings_window_pos.y);
-            node.AddValue("probe_sample_selector_window_pos", probe_sample_selector_window_pos.x + "," + probe_sample_selector_window_pos.y);
+            node.SetValue("chatter_freq", chatter_freq, true);
+            node.SetValue("chatter_vol_slider", chatter_vol_slider, true);
+            node.SetValue("chatter_sel_filter", chatter_sel_filter, true);
+            node.SetValue("show_chatter_filter_settings", show_chatter_filter_settings, true);
+            node.SetValue("show_sample_selector", show_probe_sample_selector, true);
+            node.SetValue("chatter_reverb_preset_index", chatter_reverb_preset_index, true);
+            node.SetValue("chatter_filter_settings_window_pos", chatter_filter_settings_window_pos.x + "," + chatter_filter_settings_window_pos.y, true);
+            node.SetValue("probe_sample_selector_window_pos", probe_sample_selector_window_pos.x + "," + probe_sample_selector_window_pos.y, true);
 
-            node.AddValue("quindar_toggle", quindar_toggle);
-            node.AddValue("quindar_vol_slider", quindar_vol_slider);
-            node.AddValue("sstv_freq", sstv_freq);
-            node.AddValue("sstv_vol_slider", sstv_vol_slider);
-            node.AddValue("sstv_on_science_toggle", sstv_on_science_toggle);
+            node.SetValue("quindar_toggle", quindar_toggle, true);
+            node.SetValue("quindar_vol_slider", quindar_vol_slider, true);
+            node.SetValue("sstv_freq", sstv_freq, true);
+            node.SetValue("sstv_vol_slider", sstv_vol_slider, true);
+            node.SetValue("sstv_on_science_toggle", sstv_on_science_toggle, true);
 
-            node.AddValue("sel_beep_src", sel_beep_src);
-            node.AddValue("sel_beep_page", sel_beep_page);
+            node.SetValue("sel_beep_src", sel_beep_src, true);
+            node.SetValue("sel_beep_page", sel_beep_page, true);
             
             //AAE
             if (aae_backgrounds_exist)
@@ -266,181 +281,247 @@ namespace Chatterer
                 foreach (BackgroundSource src in backgroundsource_list)
                 {
                     ConfigNode _background = new ConfigNode();
-                    _background.name = "AAE_BACKGROUND";
                     _background.AddValue("volume", src.audiosource.volume);
                     _background.AddValue("current_clip", src.current_clip);
-                    node.AddNode(_background);
+                    node.SetNode("AAE_BACKGROUND", _background, true);
                 }
             }
 
             if (aae_soundscapes_exist)
             {
-                node.AddValue("aae_soundscape_vol", aae_soundscape.volume);
-                node.AddValue("aae_soundscape_freq", aae_soundscape_freq);
+                node.SetValue("aae_soundscape_vol", aae_soundscape.volume, true);
+                node.SetValue("aae_soundscape_freq", aae_soundscape_freq, true);
             }
 
-            if (aae_breathing_exist) node.AddValue("aae_breathing_vol", aae_breathing.volume);
-            if (aae_wind_exist) node.AddValue("aae_wind_vol", aae_wind_vol_slider);
-            if (aae_airlock_exist) node.AddValue("aae_airlock_vol", aae_airlock.volume);
+            if (aae_breathing_exist) node.SetValue("aae_breathing_vol", aae_breathing.volume, true);
+            if (aae_wind_exist) node.SetValue("aae_wind_vol", aae_wind_vol_slider, true);
+            if (aae_airlock_exist) node.SetValue("aae_airlock_vol", aae_airlock.volume, true);
 
             //Chatter sets
             foreach (ChatterAudioList chatter_set in chatter_array)
             {
                 ConfigNode _set = new ConfigNode();
-                _set.name = "AUDIOSET";
                 _set.AddValue("directory", chatter_set.directory);
                 _set.AddValue("is_active", chatter_set.is_active);
-                node.AddNode(_set);
+                node.SetNode("AUDIOSET", _set, true);
             }
 
-            //filters
-            ConfigNode _filter;
-            _filter = new ConfigNode();
-            _filter.name = "CHORUS";
-            _filter.AddValue("enabled", chatter_chorus_filter.enabled);
-            _filter.AddValue("dry_mix", chatter_chorus_filter.dryMix);
-            _filter.AddValue("wet_mix_1", chatter_chorus_filter.wetMix1);
-            _filter.AddValue("wet_mix_2", chatter_chorus_filter.wetMix2);
-            _filter.AddValue("wet_mix_3", chatter_chorus_filter.wetMix3);
-            _filter.AddValue("delay", chatter_chorus_filter.delay);
-            _filter.AddValue("rate", chatter_chorus_filter.rate);
-            _filter.AddValue("depth", chatter_chorus_filter.depth);
-            node.AddNode(_filter);
-
-            _filter = new ConfigNode();
-            _filter.name = "DISTORTION";
-            _filter.AddValue("enabled", chatter_distortion_filter.enabled);
-            _filter.AddValue("distortion_level", chatter_distortion_filter.distortionLevel);
-            node.AddNode(_filter);
-
-            _filter = new ConfigNode();
-            _filter.name = "ECHO";
-            _filter.AddValue("enabled", chatter_echo_filter.enabled);
-            _filter.AddValue("delay", chatter_echo_filter.delay);
-            _filter.AddValue("decay_ratio", chatter_echo_filter.decayRatio);
-            _filter.AddValue("dry_mix", chatter_echo_filter.dryMix);
-            _filter.AddValue("wet_mix", chatter_echo_filter.wetMix);
-            node.AddNode(_filter);
-
-            _filter = new ConfigNode();
-            _filter.name = "HIGHPASS";
-            _filter.AddValue("enabled", chatter_highpass_filter.enabled);
-            _filter.AddValue("cutoff_freq", chatter_highpass_filter.cutoffFrequency);
-            _filter.AddValue("resonance_q", chatter_highpass_filter.highpassResonanceQ);
-            node.AddNode(_filter);
-
-            _filter = new ConfigNode();
-            _filter.name = "LOWPASS";
-            _filter.AddValue("enabled", chatter_lowpass_filter.enabled);
-            _filter.AddValue("cutoff_freq", chatter_lowpass_filter.cutoffFrequency);
-            _filter.AddValue("resonance_q", chatter_lowpass_filter.lowpassResonanceQ);
-            node.AddNode(_filter);
-
-            _filter = new ConfigNode();
-            _filter.name = "REVERB";
-            _filter.AddValue("enabled", chatter_reverb_filter.enabled);
-            _filter.AddValue("reverb_preset", chatter_reverb_filter.reverbPreset);
-            _filter.AddValue("dry_level", chatter_reverb_filter.dryLevel);
-            _filter.AddValue("room", chatter_reverb_filter.room);
-            _filter.AddValue("room_hf", chatter_reverb_filter.roomHF);
-            _filter.AddValue("room_lf", chatter_reverb_filter.roomLF);
-            _filter.AddValue("decay_time", chatter_reverb_filter.decayTime);
-            _filter.AddValue("decay_hf_ratio", chatter_reverb_filter.decayHFRatio);
-            _filter.AddValue("reflections_level", chatter_reverb_filter.reflectionsLevel);
-            _filter.AddValue("reflections_delay", chatter_reverb_filter.reflectionsDelay);
-            _filter.AddValue("reverb_level", chatter_reverb_filter.reverbLevel);
-            _filter.AddValue("reverb_delay", chatter_reverb_filter.reverbDelay);
-            _filter.AddValue("diffusion", chatter_reverb_filter.diffusion);
-            _filter.AddValue("density", chatter_reverb_filter.density);
-            _filter.AddValue("hf_reference", chatter_reverb_filter.hfReference);
-            _filter.AddValue("lf_reference", chatter_reverb_filter.lfReference);
-            node.AddNode(_filter);
-
+            save_shared_settings_filters(node, chatter_chorus_filter, chatter_distortion_filter, chatter_echo_filter, chatter_highpass_filter, chatter_lowpass_filter, chatter_reverb_filter);
 
             foreach (BeepSource source in beepsource_list)
             {
                 ConfigNode beep_settings = new ConfigNode();
-                beep_settings.name = "BEEPSOURCE";
 
-                beep_settings.AddValue("precise", source.precise);
-                beep_settings.AddValue("precise_freq", source.precise_freq);
-                beep_settings.AddValue("loose_freq", source.loose_freq);
-                beep_settings.AddValue("volume", source.audiosource.volume);
-                beep_settings.AddValue("pitch", source.audiosource.pitch);
-                beep_settings.AddValue("current_clip", source.current_clip);
-                beep_settings.AddValue("randomizeBeep", source.randomizeBeep);
-                beep_settings.AddValue("sel_filter", source.sel_filter);
-                beep_settings.AddValue("show_settings_window", source.show_settings_window);
-                beep_settings.AddValue("reverb_preset_index", source.reverb_preset_index);
-                beep_settings.AddValue("settings_window_pos_x", source.settings_window_pos.x);
-                beep_settings.AddValue("settings_window_pos_y", source.settings_window_pos.y);
+                save_settings(beep_settings, source);
 
                 //filters
-                //ConfigNode _filter;
+                save_shared_settings_filters(beep_settings, source.chorus_filter, source.distortion_filter, source.echo_filter, source.highpass_filter, source.lowpass_filter, source.reverb_filter);
 
-                _filter = new ConfigNode();
-                _filter.name = "CHORUS";
-                _filter.AddValue("enabled", source.chorus_filter.enabled);
-                _filter.AddValue("dry_mix", source.chorus_filter.dryMix);
-                _filter.AddValue("wet_mix_1", source.chorus_filter.wetMix1);
-                _filter.AddValue("wet_mix_2", source.chorus_filter.wetMix2);
-                _filter.AddValue("wet_mix_3", source.chorus_filter.wetMix3);
-                _filter.AddValue("delay", source.chorus_filter.delay);
-                _filter.AddValue("rate", source.chorus_filter.rate);
-                _filter.AddValue("depth", source.chorus_filter.depth);
-                beep_settings.AddNode(_filter);
-
-                _filter = new ConfigNode();
-                _filter.name = "DISTORTION";
-                _filter.AddValue("enabled", source.distortion_filter.enabled);
-                _filter.AddValue("distortion_level", source.distortion_filter.distortionLevel);
-                beep_settings.AddNode(_filter);
-
-                _filter = new ConfigNode();
-                _filter.name = "ECHO";
-                _filter.AddValue("enabled", source.echo_filter.enabled);
-                _filter.AddValue("delay", source.echo_filter.delay);
-                _filter.AddValue("decay_ratio", source.echo_filter.decayRatio);
-                _filter.AddValue("dry_mix", source.echo_filter.dryMix);
-                _filter.AddValue("wet_mix", source.echo_filter.wetMix);
-                beep_settings.AddNode(_filter);
-
-                _filter = new ConfigNode();
-                _filter.name = "HIGHPASS";
-                _filter.AddValue("enabled", source.highpass_filter.enabled);
-                _filter.AddValue("cutoff_freq", source.highpass_filter.cutoffFrequency);
-                _filter.AddValue("resonance_q", source.highpass_filter.highpassResonanceQ);
-                beep_settings.AddNode(_filter);
-
-                _filter = new ConfigNode();
-                _filter.name = "LOWPASS";
-                _filter.AddValue("enabled", source.lowpass_filter.enabled);
-                _filter.AddValue("cutoff_freq", source.lowpass_filter.cutoffFrequency);
-                _filter.AddValue("resonance_q", source.lowpass_filter.lowpassResonanceQ);
-                beep_settings.AddNode(_filter);
-
-                _filter = new ConfigNode();
-                _filter.name = "REVERB";
-                _filter.AddValue("enabled", source.reverb_filter.enabled);
-                _filter.AddValue("reverb_preset", source.reverb_filter.reverbPreset);
-                _filter.AddValue("dry_level", source.reverb_filter.dryLevel);
-                _filter.AddValue("room", source.reverb_filter.room);
-                _filter.AddValue("room_hf", source.reverb_filter.roomHF);
-                _filter.AddValue("room_lf", source.reverb_filter.roomLF);
-                _filter.AddValue("decay_time", source.reverb_filter.decayTime);
-                _filter.AddValue("decay_hf_ratio", source.reverb_filter.decayHFRatio);
-                _filter.AddValue("reflections_level", source.reverb_filter.reflectionsLevel);
-                _filter.AddValue("reflections_delay", source.reverb_filter.reflectionsDelay);
-                _filter.AddValue("reverb_level", source.reverb_filter.reverbLevel);
-                _filter.AddValue("reverb_delay", source.reverb_filter.reverbDelay);
-                _filter.AddValue("diffusion", source.reverb_filter.diffusion);
-                _filter.AddValue("density", source.reverb_filter.density);
-                _filter.AddValue("hf_reference", source.reverb_filter.hfReference);
-                _filter.AddValue("lf_reference", source.reverb_filter.lfReference);
-                beep_settings.AddNode(_filter);
-
-                node.AddNode(beep_settings);
+                node.SetNode("BEEPSOURCE", beep_settings, true);
             }
+        }
+
+        private void load_settings(ConfigNode node, BeepSource source)
+        {
+            if (node.HasValue("precise")) source.precise = Boolean.Parse(node.GetValue("precise"));
+            if (node.HasValue("precise_freq"))
+            {
+                source.precise_freq = Int32.Parse(node.GetValue("precise_freq"));
+                source.precise_freq_slider = source.precise_freq;
+            }
+            if (node.HasValue("loose_freq"))
+            {
+                source.loose_freq = Int32.Parse(node.GetValue("loose_freq"));
+                source.loose_freq_slider = source.loose_freq;
+            }
+            if (node.HasValue("volume")) source.audiosource.volume = Single.Parse(node.GetValue("volume"));
+            if (node.HasValue("pitch")) source.audiosource.pitch = Single.Parse(node.GetValue("pitch"));
+            if (node.HasValue("current_clip")) source.current_clip = node.GetValue("current_clip");
+            if (node.HasValue("randomizeBeep")) source.randomizeBeep = Boolean.Parse(node.GetValue("randomizeBeep"));
+            if (node.HasValue("sel_filter")) source.sel_filter = Int32.Parse(node.GetValue("sel_filter"));
+            if (node.HasValue("show_settings_window")) source.show_settings_window = Boolean.Parse(node.GetValue("show_settings_window"));
+            if (node.HasValue("reverb_preset_index")) source.reverb_preset_index = Int32.Parse(node.GetValue("reverb_preset_index"));
+            if (node.HasValue("settings_window_pos_x")) source.settings_window_pos.x = Single.Parse(node.GetValue("settings_window_pos_x"));
+            if (node.HasValue("settings_window_pos_y")) source.settings_window_pos.y = Single.Parse(node.GetValue("settings_window_pos_y"));
+        }
+
+        private void save_settings(ConfigNode node, BeepSource source)
+        {
+            node.AddValue("precise", source.precise);
+            node.AddValue("precise_freq", source.precise_freq);
+            node.AddValue("loose_freq", source.loose_freq);
+            node.AddValue("volume", source.audiosource.volume);
+            node.AddValue("pitch", source.audiosource.pitch);
+            node.AddValue("current_clip", source.current_clip);
+            node.AddValue("randomizeBeep", source.randomizeBeep);
+            node.AddValue("sel_filter", source.sel_filter);
+            node.AddValue("show_settings_window", source.show_settings_window);
+            node.AddValue("show_settings_window", source.show_settings_window);
+            node.AddValue("reverb_preset_index", source.reverb_preset_index);
+            node.AddValue("settings_window_pos_x", source.settings_window_pos.x);
+            node.AddValue("settings_window_pos_y", source.settings_window_pos.y);
+        }
+
+        private void save_shared_settings_filters(ConfigNode node
+            , AudioChorusFilter chorusFilter
+            , AudioDistortionFilter distortionFilter
+            , AudioEchoFilter echoFilter
+            , AudioHighPassFilter highPassFilter
+            , AudioLowPassFilter lowPassFilter
+            , AudioReverbFilter reverbFilter
+        ) {
+            save_shared_settings_filter(node, chorusFilter);
+            save_shared_settings_filter(node, distortionFilter);
+            save_shared_settings_filter(node, echoFilter);
+            save_shared_settings_filter(node, highPassFilter);
+            save_shared_settings_filter(node, lowPassFilter);
+            save_shared_settings_filter(node, reverbFilter);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioChorusFilter chorusFilter)
+        {
+            if (node.HasValue("enabled")) chorusFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("dry_mix")) chorusFilter.dryMix = Single.Parse(node.GetValue("dry_mix"));
+            if (node.HasValue("wet_mix_1")) chorusFilter.wetMix1 = Single.Parse(node.GetValue("wet_mix_1"));
+            if (node.HasValue("wet_mix_2")) chorusFilter.wetMix2 = Single.Parse(node.GetValue("wet_mix_2"));
+            if (node.HasValue("wet_mix_3")) chorusFilter.wetMix3 = Single.Parse(node.GetValue("wet_mix_3"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioChorusFilter chorusFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter = new ConfigNode();
+            _filter.AddValue("enabled", chorusFilter.enabled);
+            _filter.AddValue("dry_mix", chorusFilter.dryMix);
+            _filter.AddValue("wet_mix_1", chorusFilter.wetMix1);
+            _filter.AddValue("wet_mix_2", chorusFilter.wetMix2);
+            _filter.AddValue("wet_mix_3", chorusFilter.wetMix3);
+            _filter.AddValue("delay", chorusFilter.delay);
+            _filter.AddValue("rate", chorusFilter.rate);
+            _filter.AddValue("depth", chorusFilter.depth);
+            node.SetNode("CHORUS", _filter, true);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioDistortionFilter distortionFilter)
+        {
+            if (node.HasValue("enabled")) distortionFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("distortion_level")) distortionFilter.distortionLevel = Single.Parse(node.GetValue("distortion_level"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioDistortionFilter distortionFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter = new ConfigNode();
+            _filter.AddValue("enabled", distortionFilter.enabled);
+            _filter.AddValue("distortion_level", distortionFilter.distortionLevel);
+            node.SetNode("DISTORTION", _filter, true);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioEchoFilter echoFilter)
+        {
+            if (node.HasValue("enabled")) echoFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("delay")) echoFilter.delay = Single.Parse(node.GetValue("delay"));
+            if (node.HasValue("decay_ratio")) echoFilter.decayRatio = Single.Parse(node.GetValue("decay_ratio"));
+            if (node.HasValue("dry_mix")) echoFilter.dryMix = Single.Parse(node.GetValue("dry_mix"));
+            if (node.HasValue("wet_mix")) echoFilter.wetMix = Single.Parse(node.GetValue("wet_mix"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioEchoFilter echoFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter.AddValue("enabled", echoFilter.enabled);
+            _filter.AddValue("delay", echoFilter.delay);
+            _filter.AddValue("decay_ratio", echoFilter.decayRatio);
+            _filter.AddValue("dry_mix", echoFilter.dryMix);
+            _filter.AddValue("wet_mix", echoFilter.wetMix);
+            node.SetNode("ECHO", _filter, true);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioHighPassFilter highPassFilter)
+        {
+            if (node.HasValue("enabled")) highPassFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("cutoff_freq")) highPassFilter.cutoffFrequency = Single.Parse(node.GetValue("cutoff_freq"));
+            if (node.HasValue("resonance_q")) highPassFilter.highpassResonanceQ = Single.Parse(node.GetValue("resonance_q"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioHighPassFilter highPassFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter.AddValue("enabled", highPassFilter.enabled);
+            _filter.AddValue("cutoff_freq", highPassFilter.cutoffFrequency);
+            _filter.AddValue("resonance_q", highPassFilter.highpassResonanceQ);
+            node.SetNode("HIGHPASS", _filter, true);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioLowPassFilter lowPassFilter)
+        {
+            if (node.HasValue("enabled")) lowPassFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("cutoff_freq")) lowPassFilter.cutoffFrequency = Single.Parse(node.GetValue("cutoff_freq"));
+            if (node.HasValue("resonance_q")) lowPassFilter.lowpassResonanceQ = Single.Parse(node.GetValue("resonance_q"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioLowPassFilter lowPassFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter.AddValue("enabled", lowPassFilter.enabled);
+            _filter.AddValue("cutoff_freq", lowPassFilter.cutoffFrequency);
+            _filter.AddValue("resonance_q", lowPassFilter.lowpassResonanceQ);
+            node.SetNode("LOWPASS", _filter, true);
+        }
+
+        private void load_shared_settings_filter(ConfigNode node, AudioReverbFilter reverbFilter)
+        {
+            if (node.HasValue("enabled")) reverbFilter.enabled = Boolean.Parse(node.GetValue("enabled"));
+            if (node.HasValue("reverb_preset")) reverbFilter.reverbPreset = (AudioReverbPreset)Enum.Parse(typeof(AudioReverbPreset), node.GetValue("reverb_preset"));
+            if (node.HasValue("dry_level")) reverbFilter.dryLevel = Single.Parse(node.GetValue("dry_level"));
+            if (node.HasValue("room")) reverbFilter.room = Single.Parse(node.GetValue("room"));
+            if (node.HasValue("room_hf")) reverbFilter.roomHF = Single.Parse(node.GetValue("room_hf"));
+            if (node.HasValue("room_lf")) reverbFilter.roomLF = Single.Parse(node.GetValue("room_lf"));
+            if (node.HasValue("decay_time")) reverbFilter.decayTime = Single.Parse(node.GetValue("decay_time"));
+            if (node.HasValue("decay_hf_ratio")) reverbFilter.decayHFRatio = Single.Parse(node.GetValue("decay_hf_ratio"));
+            if (node.HasValue("reflections_level")) reverbFilter.reflectionsLevel = Single.Parse(node.GetValue("reflections_level"));
+            if (node.HasValue("reflections_delay")) reverbFilter.reflectionsDelay = Single.Parse(node.GetValue("reflections_delay"));
+            if (node.HasValue("reverb_level")) reverbFilter.reverbLevel = Single.Parse(node.GetValue("reverb_level"));
+            if (node.HasValue("reverb_delay")) reverbFilter.reverbDelay = Single.Parse(node.GetValue("reverb_delay"));
+            if (node.HasValue("diffusion")) reverbFilter.diffusion = Single.Parse(node.GetValue("diffusion"));
+            if (node.HasValue("density")) reverbFilter.density = Single.Parse(node.GetValue("density"));
+            if (node.HasValue("hf_reference")) reverbFilter.hfReference = Single.Parse(node.GetValue("hf_reference"));
+            if (node.HasValue("lf_reference")) reverbFilter.lfReference = Single.Parse(node.GetValue("lf_reference"));
+        }
+
+        private void save_shared_settings_filter(ConfigNode node, AudioReverbFilter reverbFilter)
+        {
+            ConfigNode _filter = new ConfigNode();
+            _filter.AddValue("enabled", reverbFilter.enabled);
+            _filter.AddValue("reverb_preset", reverbFilter.reverbPreset);
+            _filter.AddValue("dry_level", reverbFilter.dryLevel);
+            _filter.AddValue("room", reverbFilter.room);
+            _filter.AddValue("room_hf", reverbFilter.roomHF);
+            _filter.AddValue("room_lf", reverbFilter.roomLF);
+            _filter.AddValue("decay_time", reverbFilter.decayTime);
+            _filter.AddValue("decay_hf_ratio", reverbFilter.decayHFRatio);
+            _filter.AddValue("reflections_level", reverbFilter.reflectionsLevel);
+            _filter.AddValue("reflections_delay", reverbFilter.reflectionsDelay);
+            _filter.AddValue("reverb_level", reverbFilter.reverbLevel);
+            _filter.AddValue("reverb_delay", reverbFilter.reverbDelay);
+            _filter.AddValue("diffusion", reverbFilter.diffusion);
+            _filter.AddValue("density", reverbFilter.density);
+            _filter.AddValue("hf_reference", reverbFilter.hfReference);
+            _filter.AddValue("lf_reference", reverbFilter.lfReference);
+            node.SetNode("REVERB", _filter, true);
+        }
+
+        private void load_settings(ConfigNode node)
+        {
+            if (node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(node.GetValue("hide_all_windows"));
+            if (node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(node.GetValue("use_vessel_settings"));
+            if (node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(node.GetValue("useBlizzy78Toolbar"));
+            if (node.HasValue("http_update_check")) http_update_check = Boolean.Parse(node.GetValue("http_update_check"));
+            if (node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(node.GetValue("disable_beeps_during_chatter"));
+            if (node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("insta_chatter_key"));
+            if (node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), node.GetValue("insta_sstv_key"));
+            if (node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(node.GetValue("show_advanced_options"));
+            if (node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(node.GetValue("aae_backgrounds_onlyinIVA"));
         }
 
         private void load_shared_settings(ConfigNode node)
@@ -583,67 +664,18 @@ namespace Chatterer
                     i++;
                 }
             }
-            Log.dbg("audiosets found: " + chatter_array.Count + " :: reloading chatter audio");
+            Log.dbg("audiosets found: {0} :: reloading chatter audio", chatter_array.Count);
             load_chatter_audio();   //reload audio
 
             //Chatter filters
             foreach (ConfigNode _filter in node.nodes)
             {
-                if (_filter.name == "CHORUS")
-                {
-                    if (_filter.HasValue("enabled"))
-                    {
-                        chatter_chorus_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    }
-                    if (_filter.HasValue("dry_mix")) chatter_chorus_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
-                    if (_filter.HasValue("wet_mix_1")) chatter_chorus_filter.wetMix1 = Single.Parse(_filter.GetValue("wet_mix_1"));
-                    if (_filter.HasValue("wet_mix_2")) chatter_chorus_filter.wetMix2 = Single.Parse(_filter.GetValue("wet_mix_2"));
-                    if (_filter.HasValue("wet_mix_3")) chatter_chorus_filter.wetMix3 = Single.Parse(_filter.GetValue("wet_mix_3"));
-                }
-                else if (_filter.name == "DISTORTION")
-                {
-                    if (_filter.HasValue("enabled")) chatter_distortion_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    if (_filter.HasValue("distortion_level")) chatter_distortion_filter.distortionLevel = Single.Parse(_filter.GetValue("distortion_level"));
-                }
-                else if (_filter.name == "ECHO")
-                {
-                    if (_filter.HasValue("enabled")) chatter_echo_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    if (_filter.HasValue("delay")) chatter_echo_filter.delay = Single.Parse(_filter.GetValue("delay"));
-                    if (_filter.HasValue("decay_ratio")) chatter_echo_filter.decayRatio = Single.Parse(_filter.GetValue("decay_ratio"));
-                    if (_filter.HasValue("dry_mix")) chatter_echo_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
-                    if (_filter.HasValue("wet_mix")) chatter_echo_filter.wetMix = Single.Parse(_filter.GetValue("wet_mix"));
-                }
-                else if (_filter.name == "HIGHPASS")
-                {
-                    if (_filter.HasValue("enabled")) chatter_highpass_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    if (_filter.HasValue("cutoff_freq")) chatter_highpass_filter.cutoffFrequency = Single.Parse(_filter.GetValue("cutoff_freq"));
-                    if (_filter.HasValue("resonance_q")) chatter_highpass_filter.highpassResonanceQ = Single.Parse(_filter.GetValue("resonance_q"));
-                }
-                else if (_filter.name == "LOWPASS")
-                {
-                    if (_filter.HasValue("enabled")) chatter_lowpass_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    if (_filter.HasValue("cutoff_freq")) chatter_lowpass_filter.cutoffFrequency = Single.Parse(_filter.GetValue("cutoff_freq"));
-                    if (_filter.HasValue("resonance_q")) chatter_lowpass_filter.lowpassResonanceQ = Single.Parse(_filter.GetValue("resonance_q"));
-                }
-                else if (_filter.name == "REVERB")
-                {
-                    if (_filter.HasValue("enabled")) chatter_reverb_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                    if (_filter.HasValue("reverb_preset")) chatter_reverb_filter.reverbPreset = (AudioReverbPreset)Enum.Parse(typeof(AudioReverbPreset), _filter.GetValue("reverb_preset"));
-                    if (_filter.HasValue("dry_level")) chatter_reverb_filter.dryLevel = Single.Parse(_filter.GetValue("dry_level"));
-                    if (_filter.HasValue("room")) chatter_reverb_filter.room = Single.Parse(_filter.GetValue("room"));
-                    if (_filter.HasValue("room_hf")) chatter_reverb_filter.roomHF = Single.Parse(_filter.GetValue("room_hf"));
-                    if (_filter.HasValue("room_lf")) chatter_reverb_filter.roomLF = Single.Parse(_filter.GetValue("room_lf"));
-                    if (_filter.HasValue("decay_time")) chatter_reverb_filter.decayTime = Single.Parse(_filter.GetValue("decay_time"));
-                    if (_filter.HasValue("decay_hf_ratio")) chatter_reverb_filter.decayHFRatio = Single.Parse(_filter.GetValue("decay_hf_ratio"));
-                    if (_filter.HasValue("reflections_level")) chatter_reverb_filter.reflectionsLevel = Single.Parse(_filter.GetValue("reflections_level"));
-                    if (_filter.HasValue("reflections_delay")) chatter_reverb_filter.reflectionsDelay = Single.Parse(_filter.GetValue("reflections_delay"));
-                    if (_filter.HasValue("reverb_level")) chatter_reverb_filter.reverbLevel = Single.Parse(_filter.GetValue("reverb_level"));
-                    if (_filter.HasValue("reverb_delay")) chatter_reverb_filter.reverbDelay = Single.Parse(_filter.GetValue("reverb_delay"));
-                    if (_filter.HasValue("diffusion")) chatter_reverb_filter.diffusion = Single.Parse(_filter.GetValue("diffusion"));
-                    if (_filter.HasValue("density")) chatter_reverb_filter.density = Single.Parse(_filter.GetValue("density"));
-                    if (_filter.HasValue("hf_reference")) chatter_reverb_filter.hfReference = Single.Parse(_filter.GetValue("hf_reference"));
-                    if (_filter.HasValue("lf_reference")) chatter_reverb_filter.lfReference = Single.Parse(_filter.GetValue("lf_reference"));
-                }
+                if (_filter.name == "CHORUS")           load_shared_settings_filter(_filter, chatter_chorus_filter);
+                else if (_filter.name == "DISTORTION")  load_shared_settings_filter(_filter, chatter_distortion_filter);
+                else if (_filter.name == "ECHO")        load_shared_settings_filter(_filter, chatter_echo_filter);
+                else if (_filter.name == "HIGHPASS")    load_shared_settings_filter(_filter, chatter_highpass_filter);
+                else if (_filter.name == "LOWPASS")     load_shared_settings_filter(_filter, chatter_lowpass_filter);
+                else if (_filter.name == "REVERB")      load_shared_settings_filter(_filter, chatter_reverb_filter);
             }
 
             //Beepsources
@@ -656,26 +688,7 @@ namespace Chatterer
 
                     int x = beepsource_list.Count - 1;
 
-                    if (_source.HasValue("precise")) beepsource_list[x].precise = Boolean.Parse(_source.GetValue("precise"));
-                    if (_source.HasValue("precise_freq"))
-                    {
-                        beepsource_list[x].precise_freq = Int32.Parse(_source.GetValue("precise_freq"));
-                        beepsource_list[x].precise_freq_slider = beepsource_list[x].precise_freq;
-                    }
-                    if (_source.HasValue("loose_freq"))
-                    {
-                        beepsource_list[x].loose_freq = Int32.Parse(_source.GetValue("loose_freq"));
-                        beepsource_list[x].loose_freq_slider = beepsource_list[x].loose_freq;
-                    }
-                    if (_source.HasValue("volume")) beepsource_list[x].audiosource.volume = Single.Parse(_source.GetValue("volume"));
-                    if (_source.HasValue("pitch")) beepsource_list[x].audiosource.pitch = Single.Parse(_source.GetValue("pitch"));
-                    if (_source.HasValue("current_clip")) beepsource_list[x].current_clip = _source.GetValue("current_clip");
-                    if (_source.HasValue("randomizeBeep")) beepsource_list[x].randomizeBeep = Boolean.Parse(_source.GetValue("randomizeBeep"));
-                    if (_source.HasValue("sel_filter")) beepsource_list[x].sel_filter = Int32.Parse(_source.GetValue("sel_filter"));
-                    if (_source.HasValue("show_settings_window")) beepsource_list[x].show_settings_window = Boolean.Parse(_source.GetValue("show_settings_window"));
-                    if (_source.HasValue("reverb_preset_index")) beepsource_list[x].reverb_preset_index = Int32.Parse(_source.GetValue("reverb_preset_index"));
-                    if (_source.HasValue("settings_window_pos_x")) beepsource_list[x].settings_window_pos.x = Single.Parse(_source.GetValue("settings_window_pos_x"));
-                    if (_source.HasValue("settings_window_pos_y")) beepsource_list[x].settings_window_pos.y = Single.Parse(_source.GetValue("settings_window_pos_y"));
+                    load_settings(_source, beepsource_list[x]);
 
                     if (dict_probe_samples.Count > 0)
                     {
@@ -686,62 +699,12 @@ namespace Chatterer
 
                     foreach (ConfigNode _filter in _source.nodes)
                     {
-                        if (_filter.name == "CHORUS")
-                        {
-                            if (_filter.HasValue("enabled"))
-                            {
-                                beepsource_list[x].chorus_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                                Log.dbg("beepsource index: {0} :: chorus_enabled = {1}", x, beepsource_list[x].chorus_filter.enabled);
-                            }
-                            if (_filter.HasValue("dry_mix")) beepsource_list[x].chorus_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
-                            if (_filter.HasValue("wet_mix_1")) beepsource_list[x].chorus_filter.wetMix1 = Single.Parse(_filter.GetValue("wet_mix_1"));
-                            if (_filter.HasValue("wet_mix_2")) beepsource_list[x].chorus_filter.wetMix2 = Single.Parse(_filter.GetValue("wet_mix_2"));
-                            if (_filter.HasValue("wet_mix_3")) beepsource_list[x].chorus_filter.wetMix3 = Single.Parse(_filter.GetValue("wet_mix_3"));
-                        }
-                        else if (_filter.name == "DISTORTION")
-                        {
-                            if (_filter.HasValue("enabled")) beepsource_list[x].distortion_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                            if (_filter.HasValue("distortion_level")) beepsource_list[x].distortion_filter.distortionLevel = Single.Parse(_filter.GetValue("distortion_level"));
-                        }
-                        else if (_filter.name == "ECHO")
-                        {
-                            if (_filter.HasValue("enabled")) beepsource_list[x].echo_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                            if (_filter.HasValue("delay")) beepsource_list[x].echo_filter.delay = Single.Parse(_filter.GetValue("delay"));
-                            if (_filter.HasValue("decay_ratio")) beepsource_list[x].echo_filter.decayRatio = Single.Parse(_filter.GetValue("decay_ratio"));
-                            if (_filter.HasValue("dry_mix")) beepsource_list[x].echo_filter.dryMix = Single.Parse(_filter.GetValue("dry_mix"));
-                            if (_filter.HasValue("wet_mix")) beepsource_list[x].echo_filter.wetMix = Single.Parse(_filter.GetValue("wet_mix"));
-                        }
-                        else if (_filter.name == "HIGHPASS")
-                        {
-                            if (_filter.HasValue("enabled")) beepsource_list[x].highpass_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                            if (_filter.HasValue("cutoff_freq")) beepsource_list[x].highpass_filter.cutoffFrequency = Single.Parse(_filter.GetValue("cutoff_freq"));
-                            if (_filter.HasValue("resonance_q")) beepsource_list[x].highpass_filter.highpassResonanceQ = Single.Parse(_filter.GetValue("resonance_q"));
-                        }
-                        else if (_filter.name == "LOWPASS")
-                        {
-                            if (_filter.HasValue("enabled")) beepsource_list[x].lowpass_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                            if (_filter.HasValue("cutoff_freq")) beepsource_list[x].lowpass_filter.cutoffFrequency = Single.Parse(_filter.GetValue("cutoff_freq"));
-                            if (_filter.HasValue("resonance_q")) beepsource_list[x].lowpass_filter.lowpassResonanceQ = Single.Parse(_filter.GetValue("resonance_q"));
-                        }
-                        else if (_filter.name == "REVERB")
-                        {
-                            if (_filter.HasValue("enabled")) beepsource_list[x].reverb_filter.enabled = Boolean.Parse(_filter.GetValue("enabled"));
-                            if (_filter.HasValue("reverb_preset")) beepsource_list[x].reverb_filter.reverbPreset = (AudioReverbPreset)Enum.Parse(typeof(AudioReverbPreset), _filter.GetValue("reverb_preset"));
-                            if (_filter.HasValue("dry_level")) beepsource_list[x].reverb_filter.dryLevel = Single.Parse(_filter.GetValue("dry_level"));
-                            if (_filter.HasValue("room")) beepsource_list[x].reverb_filter.room = Single.Parse(_filter.GetValue("room"));
-                            if (_filter.HasValue("room_hf")) beepsource_list[x].reverb_filter.roomHF = Single.Parse(_filter.GetValue("room_hf"));
-                            if (_filter.HasValue("room_lf")) beepsource_list[x].reverb_filter.roomLF = Single.Parse(_filter.GetValue("room_lf"));
-                            if (_filter.HasValue("decay_time")) beepsource_list[x].reverb_filter.decayTime = Single.Parse(_filter.GetValue("decay_time"));
-                            if (_filter.HasValue("decay_hf_ratio")) beepsource_list[x].reverb_filter.decayHFRatio = Single.Parse(_filter.GetValue("decay_hf_ratio"));
-                            if (_filter.HasValue("reflections_level")) beepsource_list[x].reverb_filter.reflectionsLevel = Single.Parse(_filter.GetValue("reflections_level"));
-                            if (_filter.HasValue("reflections_delay")) beepsource_list[x].reverb_filter.reflectionsDelay = Single.Parse(_filter.GetValue("reflections_delay"));
-                            if (_filter.HasValue("reverb_level")) beepsource_list[x].reverb_filter.reverbLevel = Single.Parse(_filter.GetValue("reverb_level"));
-                            if (_filter.HasValue("reverb_delay")) beepsource_list[x].reverb_filter.reverbDelay = Single.Parse(_filter.GetValue("reverb_delay"));
-                            if (_filter.HasValue("diffusion")) beepsource_list[x].reverb_filter.diffusion = Single.Parse(_filter.GetValue("diffusion"));
-                            if (_filter.HasValue("density")) beepsource_list[x].reverb_filter.density = Single.Parse(_filter.GetValue("density"));
-                            if (_filter.HasValue("hf_reference")) beepsource_list[x].reverb_filter.hfReference = Single.Parse(_filter.GetValue("hf_reference"));
-                            if (_filter.HasValue("lf_reference")) beepsource_list[x].reverb_filter.lfReference = Single.Parse(_filter.GetValue("lf_reference"));
-                        }
+                        if (_filter.name == "CHORUS")           load_shared_settings_filter(_filter, beepsource_list[x].chorus_filter);
+                        else if (_filter.name == "DISTORTION")  load_shared_settings_filter(_filter, beepsource_list[x].distortion_filter);
+                        else if (_filter.name == "ECHO")        load_shared_settings_filter(_filter, beepsource_list[x].echo_filter);
+                        else if (_filter.name == "HIGHPASS")    load_shared_settings_filter(_filter, beepsource_list[x].highpass_filter);
+                        else if (_filter.name == "LOWPASS")     load_shared_settings_filter(_filter, beepsource_list[x].lowpass_filter);
+                        else if (_filter.name == "REVERB")      load_shared_settings_filter(_filter, beepsource_list[x].reverb_filter);
                     }
                 }
             }
@@ -752,44 +715,30 @@ namespace Chatterer
         private void new_vessel_node(Vessel v)
         {
             Log.dbg("new_vessel_node() START");
-            ConfigNode vessel_node = new ConfigNode();
 
-            //cn_vessel.name = v.id.ToString();
-            //temp_vessels_node = new ConfigNode();
-            vessel_node.name = "VESSEL";
+            ConfigNode vessel_node = new ConfigNode();
 
             vessel_node.AddValue("vessel_name", v.vesselName);
             vessel_node.AddValue("vessel_id", v.id.ToString());
 
             save_shared_settings(vessel_node);
+            vessel_settings.Node.AddNode("VESSEL", vessel_node);
 
-            vessel_settings_node.AddNode(vessel_node);
-            vessel_settings_node.Save(settings_path + "vessels.cfg");
-            
+            UnityEngine.Debug.Log(vessel_settings.Node.ToString());
+
             Log.dbg("new_vessel_node() :: vessel_node added to vessel_settings_node");
         }
 
         private void load_vessel_settings_node()
         {
             Log.dbg("START load_vessel_settings_node()");
-            vessel_settings_node = ConfigNode.Load(settings_path + "vessels.cfg");
 
-            if (vessel_settings_node != null)
-            {
-                Log.dbg("load_vessel_settings_node() :: vessel_settings.cfg loaded OK");
-                //now search for a matching vessel_id
-                //search_vessel_settings_node();
-            }
-            else
-            {
-                Log.info("load_vessel_settings_node() :: vessel_settings.cfg is null, creating a new one");
-                vessel_settings_node = new ConfigNode();
-                vessel_settings_node.name = "FLIGHTS";
-                new_vessel_node(vessel);  //add current vessel to vessel_settings_node
-                //save_vessel_settings_node();
-                Log.dbg("load_vessel_settings_node() :: current vessel node saved to vessel_settings.cfg");
-            }
+            // Force the creation of the file if needed
+            if (vessel_settings.IsLoadable) vessel_settings.Load(); else vessel_settings.Clear();
 
+            new_vessel_node(vessel);  //add current vessel to vessel_settings_node
+            vessel_settings.Save();
+            Log.dbg("load_vessel_settings_node() :: current vessel node saved to vessel_settings.cfg");
         }
 
         private void load_vessel_node(ConfigNode node)
@@ -822,15 +771,16 @@ namespace Chatterer
             Log.dbg("load_vessel_node() :: vessel settings loaded OK : total beep sources = " + beepsource_list.Count);
         }
 
-        private void search_vessel_settings_node()
+        private bool search_vessel_settings_node()
         {
             Log.dbg("START search_vessel_settings_node()");
 
             bool no_match = true;
 
-            Log.dbg("active vessel id = {0}" + vessel.id);
+            Log.dbg("active vessel id = {0}", vessel.id);
 
-            foreach (ConfigNode n in vessel_settings_node.nodes)
+            if (vessel_settings.IsLoadable) vessel_settings.Load(); else vessel_settings.Clear();
+            foreach (ConfigNode n in vessel_settings.Node.nodes)
             {
                 string val = n.GetValue("vessel_id");
                 Log.dbg("n.GetValue(\"vessel_id\") = {0}", n.GetValue("vessel_id"));
@@ -846,71 +796,78 @@ namespace Chatterer
             if (no_match)
             {
                 Log.dbg("finished search, no vessel_id match :: creating new node for this vessel");
-                //temp_vessels_node = new ConfigNode();
                 new_vessel_node(vessel);
-                //save_vessel_settings_node();  //done in new_vessel_node
+                vessel_settings.Save();
                 Log.dbg("new vessel node created and saved");
                 load_chatter_audio();   //load audio in case there is none
-                //return;
             }
-
-            //save_vessel_settings_node();
+            return !no_match;
         }
 
         private void write_vessel_settings()
         {
-            //update vessel_settings.cfg here also
-            //get all nodes from vessel_settings_node that are not the active vessel and put them into a list all_but_curr
-            //set vessel_settings_node = all_but_curr
-            //create a new node for the active vessel with its current settings
-            //add new node to vessel_settings_node
-            //save vessel_settings_node to .cfg
+            Log.dbg("Saving active vessel {0}:{1}", vessel.name, vessel.id);
+            write_vessel_settings(vessel);
+        }
+
+        private void write_vessel_settings(Vessel vesselToUpdate)
+        {
             Log.dbg("writing vessel_settings node to disk");
 
+            Log.dbg("vessel = {0}:{1}", vesselToUpdate,name, vesselToUpdate.id);
+            if (vessel_settings.IsLoadable) vessel_settings.Load(); else vessel_settings.Clear();
 
-
-            ConfigNode all_but_curr_vessel = new ConfigNode();
-
-            Log.dbg("active vessel.id = {0}", vessel.id);
-            foreach (ConfigNode cn in vessel_settings_node.nodes)
+            foreach (ConfigNode cn in vessel_settings.Node.GetNodes("VESSEL"))
             {
-                //
                 if (cn.HasValue("vessel_id"))
                 {
+                    string name = cn.GetValue("vessel_name");
                     string val = cn.GetValue("vessel_id");
-                    Log.dbg("node vessel_id = {0}", val);
+                    Log.dbg("node vessel = {0}:{1}", name, val);
 
-                    if (val != vessel.id.ToString())
+                    if (val == vesselToUpdate.id.ToString())
                     {
-                        //found an id that is not the current vessel
-                        //add it to the list
-
-                        all_but_curr_vessel.AddNode(cn);
-                        Log.dbg("write_vessel_settings() :: node vessel_id != vessel.id :: node vessel added to all_but_curr_vessel");
+                        vessel_settings.Node.RemoveNode(cn);
+                        Log.dbg("vessel node removed");
                     }
-                    //else
-                    //{
-                    //    all_but_prev_vessel.AddNode(cn);
-                    //}
                 }
             }
-            //foreach (ConfigNode cn in vessel_settings_node.nodes)
-            //{
-            //vessel_settings_node.RemoveNodes("");
-            //    Log.dbg("old nodes removed");
-            //}
 
-            vessel_settings_node = all_but_curr_vessel;
-            Log.dbg("write_vessel_settings() :: vessel_settings node = all_but_curr_vessel");
+            new_vessel_node(vesselToUpdate);
+            Log.dbg("write_vessel_settings() :: new node created using vessel {0}:{1} and added to vessel_settings node", vesselToUpdate.name, vesselToUpdate.id);
+            vessel_settings.Save();
+            Log.dbg("vessel_settings node saved to disk :: vessel node count = {0}", vessel_settings.Node.nodes.Count);
 
-            new_vessel_node(vessel);
-            Log.dbg("write_vessel_settings() :: new node created using vessel and added to vessel_settings node");
-
-            //save_vessel_settings_node();
-            vessel_settings_node.Save(settings_path + "vessels.cfg");
             Log.dbg("write_vessel_settings() END :: vessel_settings node saved to vessel_settings.cfg");
-            //end func
-            Log.dbg("vessel_settings node saved to disk :: vessel node count = {0}", vessel_settings_node.nodes.Count);
+        }
+
+        private void remove_vessel_settings(Vessel vesselToRemove)
+        {
+            Log.dbg("remove_vessel_settings node from disk");
+
+            Log.dbg("vessel = {0}:{1}", vesselToRemove,name, vesselToRemove.id);
+            if (vessel_settings.IsLoadable) vessel_settings.Load(); else vessel_settings.Clear();
+
+            foreach (ConfigNode cn in vessel_settings.Node.GetNodes("VESSEL"))
+            {
+                if (cn.HasValue("vessel_id"))
+                {
+                    string name = cn.GetValue("vessel_name");
+                    string val = cn.GetValue("vessel_id");
+                    Log.dbg("node vessel = {0}:{1}", name, val);
+
+                    if (val == vesselToRemove.id.ToString())
+                    {
+                        vessel_settings.Node.RemoveNode(cn);
+                        Log.dbg("vessel node removed");
+                    }
+                }
+            }
+
+            vessel_settings.Save();
+            Log.dbg("vessel_settings node saved to disk :: vessel node count = {0}", vessel_settings.Node.nodes.Count);
+
+            Log.dbg("remove_vessel_settings() END :: vessel_settings node saved to vessel_settings.cfg");
         }
     }
 }
