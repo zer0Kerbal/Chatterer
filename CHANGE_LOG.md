@@ -1,5 +1,12 @@
 # Chatterer :: Change Log
 
+* 2016-0419: 0.9.8 (Athlonic) for KSP ['1.1', '1.1-prerelease']
+	+ v0.9.8 [19 Apr 2016]
+		- Recompiled for KSP v1.1.0.1230
+		- Fix for capsule always initiating exchange once set to true / Thanks to MoarDV
+		- Implemented API for interactions with other mods / Thanks to MoarDV, again
+		- Stop playing wind sounds when inside a pod/cockpit
+		- Bundled MiniAVC v1.0.3.2
 * 2016-0221: 0.9.7 (Athlonic) for KSP ['1.0.5', '1.0.4', '1.0.3', '1.0.2', '1.0.0']
 		- Recompiled for KSP v1.0.5.1028
 * 2015-0713: 0.9.6 (Athlonic) for KSP ['1.0.4', '1.0.3', '1.0.2', '1.0.0']
