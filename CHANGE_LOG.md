@@ -1,5 +1,8 @@
 # Chatterer :: Change Log
 
+* 2015-0523: 0.9.3 (Athlonic) for KSP ['1.0.2', '1.0.0']
+	+ (second update of the day)
+			- Added random beeps setting
 * 2015-0523: 0.9.2 (Athlonic) for KSP ['1.0.2', '1.0.0']
 	+ fixed "skin index get out of range" messing up the GUI in some situations
 	+ added an option to have ship background noises only when in IVA (under AAE
