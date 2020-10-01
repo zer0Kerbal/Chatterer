@@ -1,5 +1,13 @@
 # Chatterer :: Change Log
 
+* 2016-1012: 0.9.91 (Athlonic) for KSP 1.2-prerelease
+		- Recompiled for KSP v1.2.0.1586
+		- Removed obsolete KSPUtil reference
+		- Replaced RemoteTech behaviours with stock CommNet thingy
+		- Removed "using System.Linq" as advised by Squad to help performances
+		- Removed RemoteTech support (for now because of Linq use)
+		- Removed Blizzy78's toolbar support (for now because of Linq use)
+		- Removed other useless "using ..."
 * 2016-0626: 0.9.90 (Athlonic) for KSP 1.1
 		- Recompiled for KSP v1.1.3.1289
 * 2016-0419: 0.9.8 (Athlonic) for KSP ['1.1', '1.1-prerelease']
