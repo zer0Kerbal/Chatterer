@@ -1,5 +1,9 @@
 # Chatterer :: Change Log
 
+* 2019-1022: 0.9.98_devBuild (Athlonic) for KSP 1.8 PRE-RELEASE
+	+ Fixed some 1600+ error (due to .dll split & Net 4.x target)
+	+ Fix for : new AudioClip(); not accepting 0 argument / compile error
+	+ Recompiled for KSP 1.8
 * 2019-1023: 0.9.98 (Athlonic) for KSP 1.8.2686
 		- Fixed some 1600+ error (due to .dll split & Net 4.x target)
 		- Fix for : new AudioClip(); not accepting 0 argument / compile error
