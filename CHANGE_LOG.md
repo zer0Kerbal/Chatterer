@@ -1,5 +1,7 @@
 # Chatterer :: Change Log
 
+* 2019-0915: 0.9.97_devBuild (Athlonic) for KSP ['1.7.3', '1.7.2', '1.7.1', '1.7', '1.6.1', '1.6.0', '1.5.1', '1.5'] PRE-RELEASE
+	+ No changelog provided
 * 2019-1023: 0.9.97 (Athlonic) for KSP ['1.7.3', '1.7.2', '1.7.1', '1.7', '1.6.1', '1.6.0', '1.5.1', '1.5']
 		- Recompiled for KSP v1.7.3
 		- fixes a possible crash when using Scatterer and Chatterer together
