@@ -1,5 +1,9 @@
 # Chatterer :: Change Log
 
+* 2014-1216: 0.8.0 (Athlonic) for KSP 0.90
+	+ recompiled for KSP v0.90
+	+ reduced pitch of EVA breathing (to sound less metallic)
+	+ removed 'CSharpfirstpass.dll' reference (no more needed)
 * 2014-1008: 0.7.1 (Athlonic) for KSP 0.25
 	+ recompiled for KSP v0.25
 	+ fixed RemoteTech v1.5.0 integration (assembly name changed)
