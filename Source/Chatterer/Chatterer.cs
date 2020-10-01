@@ -54,6 +54,9 @@ using System.IO;
 using UnityEngine;
 using KSP.UI.Screens;
 
+using Asset = KSPe.IO.Asset<Chatterer.Startup>;
+using GDBAsset = KSPe.GameDB.Asset<Chatterer.Startup>;
+
 namespace Chatterer
 {
     public class ChatterAudioList
@@ -366,7 +369,7 @@ namespace Chatterer
                 Log.dbg("blizzy78's Toolbar plugin found ! Set toolbar button.");
 
                 chatterer_toolbar_button = ToolbarManager.Instance.add("Chatterer", "UI");
-                chatterer_toolbar_button.TexturePath = "Chatterer/Textures/chatterer_icon_toolbar";
+                chatterer_toolbar_button.TexturePath = KSPe.IO.File<Startup>.Asset.Solve("Textures", "chatterer_icon_toolbar");
                 chatterer_toolbar_button.ToolTip = "Open/Close Chatterer UI";
                 chatterer_toolbar_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
                 chatterer_toolbar_button.OnClick += ((e) =>
@@ -2413,7 +2416,7 @@ namespace Chatterer
         {
             //Create two AudioSources for quindar so PlayDelayed() can delay both beeps
             Log.dbg("loading quindar_01 clip");
-            string path1 = "Chatterer/Sounds/chatter/quindar_01";
+            string path1 = GDBAsset.Solve("Sounds", "chatter/quindar_01");
 
             if (GameDatabase.Instance.ExistsAudioClip(path1))
             {
@@ -2423,7 +2426,7 @@ namespace Chatterer
             else Log.warn("quindar_01 audio file missing!");
 
             Log.dbg("loading quindar_02 clip");
-            string path2 = "Chatterer/Sounds/chatter/quindar_02";
+            string path2 = GDBAsset.Solve("Sounds", "chatter/quindar_02");
 
             if (GameDatabase.Instance.ExistsAudioClip(path2))
             {
@@ -2433,7 +2436,7 @@ namespace Chatterer
             else Log.warn("quindar_02 audio file missing!");
 
             Log.dbg("loading voidnoise clip");
-            string path3 = "Chatterer/Sounds/chatter/voidnoise";
+            string path3 = GDBAsset.Solve("Sounds", "chatter/voidnoise");
 
             if (GameDatabase.Instance.ExistsAudioClip(path3))
             {
@@ -2447,8 +2450,7 @@ namespace Chatterer
         {
             string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
 
-            string probe_sounds_root = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/beeps/";
-            //if (Application.platform == RuntimePlatform.OSXPlayer) probe_sounds_root = KSPUtil.ApplicationRootPath.Substring(0, KSPUtil.ApplicationRootPath.IndexOf("KSP.app")) + "GameData/RBR/Sounds/probe/";
+            string probe_sounds_root = GDBAsset.Solve("Sounds", "beeps");
 
             if (Directory.Exists(probe_sounds_root))
             {
@@ -2479,7 +2481,7 @@ namespace Chatterer
                         {
                             //GameDatabase won't load MP3
                             //try old method
-                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/beeps/" + short_file_name + ".mp3";
+                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/beeps/" + short_file_name + ".mp3";
                             //WWW www_chatter = new WWW(mp3_path);
                             //if (www_chatter != null)
                             //{
@@ -2494,7 +2496,7 @@ namespace Chatterer
                         }
                         else
                         {
-                            string gdb_path = "Chatterer/Sounds/beeps/" + short_file_name;
+                            string gdb_path = GDBAsset.Solve("Sounds", "beeps/" + short_file_name);
                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                             {
                                 //all_beep_clips.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
@@ -2517,7 +2519,7 @@ namespace Chatterer
         {
             string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
 
-            string sstv_sounds_root = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/sstv/";
+            string sstv_sounds_root = GDBAsset.Solve("Sounds", "sstv");
 
             if (Directory.Exists(sstv_sounds_root))
             {
@@ -2547,7 +2549,7 @@ namespace Chatterer
                         {
                             //GameDatabase won't load MP3
                             //try old method
-                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/sstv/" + short_file_name + ".mp3";
+                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/sstv/" + short_file_name + ".mp3";
                             //WWW www_chatter = new WWW(mp3_path);
                             //if (www_chatter != null)
                             //{
@@ -2561,7 +2563,7 @@ namespace Chatterer
                         }
                         else
                         {
-                            string gdb_path = "Chatterer/Sounds/sstv/" + short_file_name;
+                            string gdb_path = GDBAsset.Solve("Sounds", "sstv/" + short_file_name);
                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                             {
                                 all_sstv_clips.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
@@ -2590,8 +2592,7 @@ namespace Chatterer
             string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
             int k;
 
-            string chatter_root = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/chatter/";
-            //string chatter_root = KSPUtil.ApplicationRootPath.Substring(0, KSPUtil.ApplicationRootPath.IndexOf("KSP_Data")) + "GameData/RBR/Sounds/chatter/";
+            string chatter_root = GDBAsset.Solve("Sounds", "chatter");
 
             if (Directory.Exists(chatter_root))
             {
@@ -2643,7 +2644,7 @@ namespace Chatterer
                                         if (ext == "*.mp3")
                                         {
                                             //try old method
-                                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/chatter/" + chatter_array[k].directory + "/" + st + "/" + file_name + ".mp3";
+                                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/chatter/" + chatter_array[k].directory + "/" + st + "/" + file_name + ".mp3";
                                             //WWW www_chatter = new WWW(mp3_path);
                                             //if (www_chatter != null)
                                             //{
@@ -2666,7 +2667,7 @@ namespace Chatterer
                                         }
                                         else
                                         {
-                                            string gdb_path = "Chatterer/Sounds/chatter/" + chatter_array[k].directory + "/" + st + "/" + file_name;
+                                            string gdb_path = GDBAsset.Solve("Sounds", "chatter", chatter_array[k].directory, st, file_name);
                                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                                             {
                                                 if (st == "capcom")
@@ -2714,7 +2715,7 @@ namespace Chatterer
         private void load_AAE_background_audio()
         {
             string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-            string sounds_path = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/AAE/background/";
+            string sounds_path = GDBAsset.Solve("Sounds", "AAE", "background");
 
             if (Directory.Exists(sounds_path))
             {
@@ -2733,7 +2734,7 @@ namespace Chatterer
                         int end_pos = file_name.LastIndexOf(".");
                         file_name = file_name.Substring(0, end_pos);
 
-                        string gdb_path = "Chatterer/Sounds/AAE/background/" + file_name;
+                        string gdb_path = GDBAsset.Solve("Sounds", "AAE", "background", file_name);
                         if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                         {
                             aae_backgrounds_exist = true;
@@ -2759,7 +2760,7 @@ namespace Chatterer
         private void load_AAE_soundscape_audio()
         {
             string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-            string sounds_path = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/../../../Sounds/AAE/soundscape/";
+            string sounds_path = GDBAsset.Solve("Sounds", "AAE", "soundscape");
 
             if (Directory.Exists(sounds_path))
             {
@@ -2778,7 +2779,7 @@ namespace Chatterer
                         int end_pos = file_name.LastIndexOf(".");
                         file_name = file_name.Substring(0, end_pos);
 
-                        string gdb_path = "Chatterer/Sounds/AAE/soundscape/" + file_name;
+                        string gdb_path = GDBAsset.Solve("Sounds", "AAE", "soundscape", file_name);
                         if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                         {
                             aae_soundscapes_exist = true;
@@ -3339,20 +3340,6 @@ namespace Chatterer
             aae_soundscape_player = new GameObject();
             aae_ambient_player = new GameObject();
 
-            chatterer_button_TX = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_TX_muted = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_RX = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_RX_muted = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_SSTV = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_SSTV_muted = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_idle = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_idle_muted = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            chatterer_button_disabled = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-            line_512x4 = new Texture2D(512, 8, TextureFormat.ARGB32, false);
-
-            //set a path to save/load settings
-            settings_path = AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/"; //returns "X:/full/path/to/GameData/Chatterer/Plugins/PluginData/chatterer"
-
             if (Directory.Exists(settings_path))
             {
                 Log.dbg("{0} exists", settings_path);
@@ -3410,7 +3397,7 @@ namespace Chatterer
             aae_breathing.spatialBlend = 0.0f;
             aae_breathing.volume = 1.0f;
             aae_breathing.loop = true;
-            string breathing_path = "Chatterer/Sounds/AAE/effect/breathing";
+            string breathing_path = GDBAsset.Solve("Sounds", "AAE", "effect", "breathing");
             if (GameDatabase.Instance.ExistsAudioClip(breathing_path))
             {
                 aae_breathing_exist = true;
@@ -3426,7 +3413,7 @@ namespace Chatterer
             aae_airlock = aae_ambient_player.AddComponent<AudioSource>();
             aae_airlock.spatialBlend = 0.0f;
             aae_airlock.volume = 1.0f;
-            string airlock_path = "Chatterer/Sounds/AAE/effect/airlock";
+            string airlock_path = GDBAsset.Solve("Sounds", "AAE", "effect", "airlock");
             if (GameDatabase.Instance.ExistsAudioClip(airlock_path))
             {
                 aae_airlock_exist = true;
@@ -3442,7 +3429,7 @@ namespace Chatterer
             aae_wind = aae_ambient_player.AddComponent<AudioSource>();
             aae_wind.spatialBlend = 0.0f;
             aae_wind.volume = 1.0f;
-            string wind_path = "Chatterer/Sounds/AAE/wind/mario1298__weak-wind";
+            string wind_path = GDBAsset.Solve("Sounds", "AAE", "wind", "mario1298__weak-wind");
             if (GameDatabase.Instance.ExistsAudioClip(wind_path))
             {
                 aae_wind_exist = true;
@@ -3463,7 +3450,7 @@ namespace Chatterer
             landingsource = aae_ambient_player.AddComponent<AudioSource>();
             landingsource.spatialBlend = 0.0f;
             landingsource.volume = 0.5f;
-            string landing_path = "Chatterer/Sounds/AAE/loop/suspense1";
+            string landing_path = GDBAsset.Solve("Sounds", "AAE", "loop", "suspense1");
             if (GameDatabase.Instance.ExistsAudioClip(landing_path))
             {
                 landingsource.clip = GameDatabase.Instance.GetAudioClip(landing_path);
@@ -3476,22 +3463,20 @@ namespace Chatterer
 
 
 
-            load_beep_audio();      //this must run before loading settings (else no beep clips to assign to sources))
+            load_beep_audio();      // this must run before loading settings (else no beep clips to assign to sources))
 
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/line_512x4")) line_512x4 = GameDatabase.Instance.GetTexture("Chatterer/Textures/line_512x4", false);
-            else Log.warn("Texture 'line_512x4' is missing!");
-
+            this.line_512x4                         = Asset.Texture2D.LoadFromFile(false, "Textures", "line_512x4");
             // initialise launcherButton textures
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_TX")) chatterer_button_TX = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_TX", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_TX_muted")) chatterer_button_TX_muted = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_TX_muted", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_RX")) chatterer_button_RX = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_RX", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_RX_muted")) chatterer_button_RX_muted = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_RX_muted", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_SSTV")) chatterer_button_SSTV = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_SSTV", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_SSTV_muted")) chatterer_button_SSTV_muted = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_SSTV_muted", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_idle")) chatterer_button_idle = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_idle", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_idle_muted")) chatterer_button_idle_muted = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_idle_muted", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_disabled")) chatterer_button_disabled = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_disabled", false);
-            if (GameDatabase.Instance.ExistsTexture("Chatterer/Textures/chatterer_button_disabled_muted")) chatterer_button_disabled_muted = GameDatabase.Instance.GetTexture("Chatterer/Textures/chatterer_button_disabled_muted", false);
+            this.chatterer_button_TX                = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_TX");
+            this.chatterer_button_TX_muted          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_TX_muted");
+            this.chatterer_button_RX                = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_RX");
+            this.chatterer_button_RX_muted          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_RX_muted");
+            this.chatterer_button_SSTV              = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_SSTV");
+            this.chatterer_button_SSTV_muted        = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_SSTV_muted");
+            this.chatterer_button_idle              = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_idle");
+            this.chatterer_button_idle_muted        = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_idle_muted");
+            this.chatterer_button_disabled          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_disabled");
+            this.chatterer_button_disabled_muted    = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_disabled_muted");
 
             load_plugin_settings();
 
