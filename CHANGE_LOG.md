@@ -1,5 +1,8 @@
 # Chatterer :: Change Log
 
+* 2014-1008: 0.7.1 (Athlonic) for KSP 0.25
+	+ recompiled for KSP v0.25
+	+ fixed RemoteTech v1.5.0 integration (assembly name changed)
 * 2014-0906: 0.7.0 (Athlonic) for KSP 0.24.2
 	+ Added RemoteTech2 integration
 	+ signal delay is added to chatter response delay
