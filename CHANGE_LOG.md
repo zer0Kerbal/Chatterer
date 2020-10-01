@@ -1,5 +1,8 @@
 # Chatterer :: Change Log
 
+* 2018-0312: 0.9.94 (Athlonic) for KSP 1.4.0
+		- Recompiled for KSP v1.4.0.2077
+		- Fixed reverb_filter deprecated function roomRolloff preventing plugin execution in KSP v1.4
 * 2017-0527: 0.9.93 (Athlonic) for KSP ['1.3.1', '1.3']
 		- Recompiled for KSP v1.3.0.1804
 		- Fix for chatter spam on jumps (avoid exchange to trigger every time vessel leaves the ground)
