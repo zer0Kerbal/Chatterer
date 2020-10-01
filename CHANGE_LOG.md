@@ -1,5 +1,15 @@
 # Chatterer :: Change Log
 
+* 2018-0412: 0.9.95 (Athlonic) for KSP ['1.4.2', '1.4.1', '1.4.0']
+		- Recompiled for KSP v1.4.2.2110
+		- Switched chatter exchange code to a coroutine method (this didn't fix chatter hang since KSP 1.4.0 issue tho)
+		- Moved quindar clips to chatter's Audiosource instead of quindar Audiosource (this actually fixed hanging issue)
+		- Added chatter exchange trigger on SOI change Events
+		- Added chatter exchange trigger on vessel situation change Events(all but Flight and Landed to avoid the notorious spam on bumps issue)
+		- Added chatter exchange trigger when CommNet link goes online
+		- Added a new sound "void noise" which kicks when CommNet link goes offline
+		- Trigger an exchange on crewed vessel load (just to say hello)
+		- Some code cleanup
 * 2018-0312: 0.9.94 (Athlonic) for KSP 1.4.0
 		- Recompiled for KSP v1.4.0.2077
 		- Fixed reverb_filter deprecated function roomRolloff preventing plugin execution in KSP v1.4
