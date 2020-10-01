@@ -1,5 +1,7 @@
 # Chatterer :: Change Log
 
+* 2018-1018: 0.9.96 (Athlonic) for KSP ['1.7', '1.6.1', '1.6.0', '1.5.1', '1.5', '1.4.5', '1.4.4', '1.4.3', '1.4.2', '1.4.1', '1.4.0']
+		- Recompiled for KSP v1.5.0.2332
 * 2018-0412: 0.9.95 (Athlonic) for KSP ['1.4.2', '1.4.1', '1.4.0']
 		- Recompiled for KSP v1.4.2.2110
 		- Switched chatter exchange code to a coroutine method (this didn't fix chatter hang since KSP 1.4.0 issue tho)
