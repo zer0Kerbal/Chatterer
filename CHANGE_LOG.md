@@ -1,5 +1,12 @@
 # Chatterer :: Change Log
 
+* 2015-0523: 0.9.2 (Athlonic) for KSP ['1.0.2', '1.0.0']
+	+ fixed "skin index get out of range" messing up the GUI in some situations
+	+ added an option to have ship background noises only when in IVA (under AAE
+	+ tab)
+		- set "disable beep during chatter" to false by default (for realism sake)
+		- textures converted to DDS (thanks to Avera9eJoe)
+	+ (be sure to remove old .png files when upgrading)
 * 2015-0502: 0.9.1 (Athlonic) for KSP 1.0.0
 	+ Recompiled for KSP v1.0.2
 * 2015-0428: 0.9.0 (Athlonic) for KSP 1.0.0
