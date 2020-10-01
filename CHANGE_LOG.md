@@ -1,5 +1,10 @@
 # Chatterer :: Change Log
 
+* 2020-0320: 0.9.99 (Athlonic) for KSP 1.9.1.2788
+	+ Recompiled for KSP 1.9.1.2788
+	+ Targeting Net 4.8
+	+ Moved initialization of GameObject variables into Awake() function (Thanks to our linuxgurugamer <3 )
+	+ Removed MiniAVC.dll (waiting for MiniAVC-2 update)
 * 2019-1022: 0.9.98_devBuild (Athlonic) for KSP 1.8 PRE-RELEASE
 	+ Fixed some 1600+ error (due to .dll split & Net 4.x target)
 	+ Fix for : new AudioClip(); not accepting 0 argument / compile error
