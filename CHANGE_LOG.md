@@ -1,5 +1,9 @@
 # Chatterer :: Change Log
 
+* 2015-0524: 0.9.4 (Athlonic) for KSP ['1.0.2', '1.0.0']
+		- Added Female audioset (Talk to me Valentina)
+	+ (Female capsule chatter will play when Kerbal in command (seat[0]) or EVA
+	+ Kerbal is female)
 * 2015-0523: 0.9.3 (Athlonic) for KSP ['1.0.2', '1.0.0']
 	+ (second update of the day)
 			- Added random beeps setting
