@@ -1,5 +1,9 @@
 # Chatterer :: Change Log
 
+* 2017-0527: 0.9.93 (Athlonic) for KSP ['1.3.1', '1.3']
+		- Recompiled for KSP v1.3.0.1804
+		- Fix for chatter spam on jumps (avoid exchange to trigger every time vessel leaves the ground)
+		- Automatically mute all sounds when game is paused
 * 2016-1231: 0.9.92 (Athlonic) for KSP ['1.2.2', '1.2.1', '1.2']
 	+ Changelog:
 			- Recompiled for KSP v1.2.2.1622
