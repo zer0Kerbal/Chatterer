@@ -1,5 +1,11 @@
 # Chatterer :: Change Log
 
+* 2015-0428: 0.9.0 (Athlonic) for KSP 1.0.0
+	+ Recompiled and added compatibility for KSP 1.0 :
+	+ fix for deprecated (maxAtmosphereAltitude) method
+	+ fix for new applicationLauncherButton management
+		- Set Insta-keys at "none" by default
+		- Added a button to clear Insta-keys binding
 * 2015-0116: 0.8.1 (Athlonic) for KSP 0.90
 	+ Fixed RemoteTech v1.6.0 support (update RT first if you are still using
 	+ Removed RT delay before capsule initiating chatter exchange (silly me)
