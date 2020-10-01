@@ -1,5 +1,7 @@
 # Chatterer :: Change Log
 
+* 2016-0221: 0.9.7 (Athlonic) for KSP ['1.0.5', '1.0.4', '1.0.3', '1.0.2', '1.0.0']
+		- Recompiled for KSP v1.0.5.1028
 * 2015-0713: 0.9.6 (Athlonic) for KSP ['1.0.4', '1.0.3', '1.0.2', '1.0.0']
 	+ Recompiled for KSP v1.0.4
 	+ Code optimizations more GameEvents/less onUpdate loop checks
