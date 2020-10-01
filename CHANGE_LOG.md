@@ -1,5 +1,7 @@
 # Chatterer :: Change Log
 
+* 2015-0502: 0.9.1 (Athlonic) for KSP 1.0.0
+	+ Recompiled for KSP v1.0.2
 * 2015-0428: 0.9.0 (Athlonic) for KSP 1.0.0
 	+ Recompiled and added compatibility for KSP 1.0 :
 	+ fix for deprecated (maxAtmosphereAltitude) method
