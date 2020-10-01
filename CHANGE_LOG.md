@@ -1,5 +1,10 @@
 # Chatterer :: Change Log
 
+* 2014-0906: 0.7.0 (Athlonic) for KSP 0.24.2
+	+ Added RemoteTech2 integration
+	+ signal delay is added to chatter response delay
+	+ signal loss will disable chatter capcom's responses, beeps and SSTV transmissions
+		- fixed warning msg in log about custom filters (on Awake)
 * 2014-0905: 0.6.4 (Athlonic) for KSP ['0.24.2', '0.24.1']
 	+ fixed Airlock sound playing when switching vessel to/from EVAed Kerbal
 	+ removed warning msg in log about "soundscape" folder missing if not
