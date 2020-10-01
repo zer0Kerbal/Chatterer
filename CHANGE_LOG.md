@@ -1,5 +1,10 @@
 # Chatterer :: Change Log
 
+* 2016-1231: 0.9.92 (Athlonic) for KSP ['1.2.2', '1.2.1', '1.2']
+	+ Changelog:
+			- Recompiled for KSP v1.2.2.1622
+			- Removed Linq reference (for good)
+			- Reimplemented Blizzy78's Toolbar support
 * 2016-1012: 0.9.91 (Athlonic) for KSP 1.2-prerelease
 		- Recompiled for KSP v1.2.0.1586
 		- Removed obsolete KSPUtil reference
