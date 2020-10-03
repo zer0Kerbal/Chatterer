@@ -103,6 +103,7 @@ namespace Chatterer
             save_shared_settings(plugin_settings_node);
 
             plugin_settings.Save();
+
             Log.dbg("plugin settings saved to disk");
 
             //update vessel_settings.cfg
@@ -132,19 +133,9 @@ namespace Chatterer
                 save_plugin_settings();
             }
 
-            ConfigNode plugin_settings_node = plugin_settings.Node;
-
-            if (plugin_settings_node != null)
-            {
-                Log.dbg("plugin_settings != null");
-                //Load settings specific to plugin.cfg
-                load_settings(plugin_settings_node);
-                load_shared_settings(plugin_settings_node); //load settings shared between both configs
-            }
-            else
-            {
-                Log.error("plugin.cfg missing or unreadable");
-            }
+            Log.dbg("Load settings specific to plugin_settings.cfg");
+            load_settings(plugin_settings.Node);
+            load_shared_settings(plugin_settings.Node); //load settings shared between both configs
 
             //if (chatter_exists && chatter_array.Count == 0)
             if (chatter_array.Count == 0)
@@ -178,32 +169,28 @@ namespace Chatterer
             beepsource_list.Clear();
 
             Asset.ConfigNode defaults = Asset.ConfigNode.For("DEFAULT_SETTINGS", "plugin_defaults.cfg");
-            ConfigNode plugin_settings_node = null;
             if (defaults.IsLoadable)
-            {
                 defaults.Load();
-                plugin_settings_node = defaults.Node;
-            } else Log.error("No plugin_defaults.cfg found!");
+            else
+            {
+                Log.error("plugin_defaults.cfg missing or unreadable!");
+                return;
+            }
 
-            if (plugin_settings_node != null)
             {
                 Log.dbg("plugin_defaults != null");
                 //Load settings specific to plugin.cfg
-                if (defaults.Node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(plugin_settings_node.GetValue("hide_all_windows"));
-                if (defaults.Node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(plugin_settings_node.GetValue("use_vessel_settings"));
-                if (defaults.Node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(plugin_settings_node.GetValue("useBlizzy78Toolbar"));
-                if (defaults.Node.HasValue("http_update_check")) http_update_check = Boolean.Parse(plugin_settings_node.GetValue("http_update_check"));
-                if (defaults.Node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(plugin_settings_node.GetValue("disable_beeps_during_chatter"));
-                if (defaults.Node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_chatter_key"));
-                if (defaults.Node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), plugin_settings_node.GetValue("insta_sstv_key"));
-                if (defaults.Node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(plugin_settings_node.GetValue("show_advanced_options"));
-                if (defaults.Node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(plugin_settings_node.GetValue("aae_backgrounds_onlyinIVA"));
+                if (defaults.Node.HasValue("hide_all_windows")) hide_all_windows = Boolean.Parse(defaults.Node.GetValue("hide_all_windows"));
+                if (defaults.Node.HasValue("use_vessel_settings")) use_vessel_settings = Boolean.Parse(defaults.Node.GetValue("use_vessel_settings"));
+                if (defaults.Node.HasValue("useBlizzy78Toolbar")) useBlizzy78Toolbar = Boolean.Parse(defaults.Node.GetValue("useBlizzy78Toolbar"));
+                if (defaults.Node.HasValue("http_update_check")) http_update_check = Boolean.Parse(defaults.Node.GetValue("http_update_check"));
+                if (defaults.Node.HasValue("disable_beeps_during_chatter")) disable_beeps_during_chatter = Boolean.Parse(defaults.Node.GetValue("disable_beeps_during_chatter"));
+                if (defaults.Node.HasValue("insta_chatter_key")) insta_chatter_key = (KeyCode)Enum.Parse(typeof(KeyCode), defaults.Node.GetValue("insta_chatter_key"));
+                if (defaults.Node.HasValue("insta_sstv_key")) insta_sstv_key = (KeyCode)Enum.Parse(typeof(KeyCode), defaults.Node.GetValue("insta_sstv_key"));
+                if (defaults.Node.HasValue("show_advanced_options")) show_advanced_options = Boolean.Parse(defaults.Node.GetValue("show_advanced_options"));
+                if (defaults.Node.HasValue("aae_backgrounds_onlyinIVA")) aae_backgrounds_onlyinIVA = Boolean.Parse(defaults.Node.GetValue("aae_backgrounds_onlyinIVA"));
 
                 load_shared_settings(defaults.Node); //load settings shared between both configs
-            }
-            else
-            {
-                Log.error("plugin_defautls.cfg missing or unreadable");
             }
 
             //if (chatter_exists && chatter_array.Count == 0)
@@ -259,10 +246,10 @@ namespace Chatterer
 
             node.SetValue("chatter_freq", chatter_freq, true);
             node.SetValue("chatter_vol_slider", chatter_vol_slider, true);
-            node.SetValue("chatter_sel_filter", chatter_sel_filter, true);
+            node.SetValue("chatter_sel_filter", chatter.sel_filter, true);
             node.SetValue("show_chatter_filter_settings", show_chatter_filter_settings, true);
             node.SetValue("show_sample_selector", show_probe_sample_selector, true);
-            node.SetValue("chatter_reverb_preset_index", chatter_reverb_preset_index, true);
+            node.SetValue("chatter_reverb_preset_index", chatter.reverb_preset_index, true);
             node.SetValue("chatter_filter_settings_window_pos", chatter_filter_settings_window_pos.x + "," + chatter_filter_settings_window_pos.y, true);
             node.SetValue("probe_sample_selector_window_pos", probe_sample_selector_window_pos.x + "," + probe_sample_selector_window_pos.y, true);
 
@@ -298,7 +285,7 @@ namespace Chatterer
             if (aae_airlock_exist) node.SetValue("aae_airlock_vol", aae_airlock.volume, true);
 
             //Chatter sets
-            foreach (ChatterAudioList chatter_set in chatter_array)
+            foreach (ChatterAudioList chatter_set in chatter_array) // FIXME: eh aqui que tah dando merda no audioset.
             {
                 ConfigNode _set = new ConfigNode();
                 _set.AddValue("directory", chatter_set.directory);
@@ -306,7 +293,7 @@ namespace Chatterer
                 node.SetNode("AUDIOSET", _set, true);
             }
 
-            save_shared_settings_filters(node, chatter_chorus_filter, chatter_distortion_filter, chatter_echo_filter, chatter_highpass_filter, chatter_lowpass_filter, chatter_reverb_filter);
+            save_shared_settings_filters(node, chatter);
 
             foreach (BeepSource source in beepsource_list)
             {
@@ -315,7 +302,7 @@ namespace Chatterer
                 save_settings(beep_settings, source);
 
                 //filters
-                save_shared_settings_filters(beep_settings, source.chorus_filter, source.distortion_filter, source.echo_filter, source.highpass_filter, source.lowpass_filter, source.reverb_filter);
+                save_shared_settings_filters(beep_settings, source);
 
                 node.SetNode("BEEPSOURCE", beep_settings, true);
             }
@@ -362,20 +349,14 @@ namespace Chatterer
             node.AddValue("settings_window_pos_y", source.settings_window_pos.y);
         }
 
-        private void save_shared_settings_filters(ConfigNode node
-            , AudioChorusFilter chorusFilter
-            , AudioDistortionFilter distortionFilter
-            , AudioEchoFilter echoFilter
-            , AudioHighPassFilter highPassFilter
-            , AudioLowPassFilter lowPassFilter
-            , AudioReverbFilter reverbFilter
-        ) {
-            save_shared_settings_filter(node, chorusFilter);
-            save_shared_settings_filter(node, distortionFilter);
-            save_shared_settings_filter(node, echoFilter);
-            save_shared_settings_filter(node, highPassFilter);
-            save_shared_settings_filter(node, lowPassFilter);
-            save_shared_settings_filter(node, reverbFilter);
+        private void save_shared_settings_filters(ConfigNode node, AudioSettings audioSettings)
+        {
+            save_shared_settings_filter(node, audioSettings.chorus_filter);
+            save_shared_settings_filter(node, audioSettings.distortion_filter);
+            save_shared_settings_filter(node, audioSettings.echo_filter);
+            save_shared_settings_filter(node, audioSettings.highpass_filter);
+            save_shared_settings_filter(node, audioSettings.lowpass_filter);
+            save_shared_settings_filter(node, audioSettings.reverb_filter);
         }
 
         private void load_shared_settings_filter(ConfigNode node, AudioChorusFilter chorusFilter)
@@ -559,9 +540,9 @@ namespace Chatterer
                 response_chatter.volume = chatter_vol_slider;
                 prev_chatter_vol_slider = chatter_vol_slider;
             }
-            if (node.HasValue("chatter_sel_filter")) chatter_sel_filter = Int32.Parse(node.GetValue("chatter_sel_filter"));
+            if (node.HasValue("chatter_sel_filter")) chatter.sel_filter = Int32.Parse(node.GetValue("chatter_sel_filter"));
             if (node.HasValue("show_chatter_filter_settings")) show_chatter_filter_settings = Boolean.Parse(node.GetValue("show_chatter_filter_settings"));
-            if (node.HasValue("chatter_reverb_preset_index")) chatter_reverb_preset_index = Int32.Parse(node.GetValue("chatter_reverb_preset_index"));
+            if (node.HasValue("chatter_reverb_preset_index")) chatter.reverb_preset_index = Int32.Parse(node.GetValue("chatter_reverb_preset_index"));
             if (node.HasValue("chatter_filter_settings_window_pos"))
             {
                 string[] split = node.GetValue("chatter_filter_settings_window_pos").Split(Convert.ToChar(","));
@@ -599,11 +580,10 @@ namespace Chatterer
             if (node.HasValue("sel_beep_page")) sel_beep_page = Int32.Parse(node.GetValue("sel_beep_page"));
             
             //AAE
-            int i;
 
             if (aae_backgrounds_exist)
             {
-                i = 0;
+                int i = 0;
 
                 foreach (ConfigNode _background in node.nodes)
                 {
@@ -651,44 +631,26 @@ namespace Chatterer
                 }
             }
 
-            //
             //Load audioset info
-            i = 0;
-            foreach (ConfigNode _set in node.nodes)
-            {
-                if (_set.name == "AUDIOSET")
-                {
-                    chatter_array.Add(new ChatterAudioList());  //create a new entry in the list for each audioset
-                    if (_set.HasValue("directory")) chatter_array[i].directory = _set.GetValue("directory");
-                    if (_set.HasValue("is_active")) chatter_array[i].is_active = Boolean.Parse(_set.GetValue("is_active"));
-                    i++;
-                }
-            }
+            foreach (ConfigNode _set in node.GetNodes("AUDIOSET"))
+                chatter_array.Add(ChatterAudioList.createFrom(_set));  //create a new entry in the list for each audioset
+
             Log.dbg("audiosets found: {0} :: reloading chatter audio", chatter_array.Count);
             load_chatter_audio();   //reload audio
 
             //Chatter filters
-            foreach (ConfigNode _filter in node.nodes)
+            foreach (ConfigNode configNode in node.nodes)
             {
-                if (_filter.name == "CHORUS")           load_shared_settings_filter(_filter, chatter_chorus_filter);
-                else if (_filter.name == "DISTORTION")  load_shared_settings_filter(_filter, chatter_distortion_filter);
-                else if (_filter.name == "ECHO")        load_shared_settings_filter(_filter, chatter_echo_filter);
-                else if (_filter.name == "HIGHPASS")    load_shared_settings_filter(_filter, chatter_highpass_filter);
-                else if (_filter.name == "LOWPASS")     load_shared_settings_filter(_filter, chatter_lowpass_filter);
-                else if (_filter.name == "REVERB")      load_shared_settings_filter(_filter, chatter_reverb_filter);
-            }
+                load_shared_settings_filter(configNode, chatter);
 
-            //Beepsources
-            foreach (ConfigNode _source in node.nodes)
-            {
-                if (_source.name == "BEEPSOURCE")
+                if (configNode.name == "BEEPSOURCE") //Beepsources
                 {
                     Log.dbg("loading beepsource");
                     add_new_beepsource();
 
                     int x = beepsource_list.Count - 1;
 
-                    load_settings(_source, beepsource_list[x]);
+                    load_settings(configNode, beepsource_list[x]);
 
                     if (dict_probe_samples.Count > 0)
                     {
@@ -697,19 +659,22 @@ namespace Chatterer
                         if (beepsource_list[x].precise == false && beepsource_list[x].loose_freq > 0) new_beep_loose_timer_limit(beepsource_list[x]);
                     }
 
-                    foreach (ConfigNode _filter in _source.nodes)
-                    {
-                        if (_filter.name == "CHORUS")           load_shared_settings_filter(_filter, beepsource_list[x].chorus_filter);
-                        else if (_filter.name == "DISTORTION")  load_shared_settings_filter(_filter, beepsource_list[x].distortion_filter);
-                        else if (_filter.name == "ECHO")        load_shared_settings_filter(_filter, beepsource_list[x].echo_filter);
-                        else if (_filter.name == "HIGHPASS")    load_shared_settings_filter(_filter, beepsource_list[x].highpass_filter);
-                        else if (_filter.name == "LOWPASS")     load_shared_settings_filter(_filter, beepsource_list[x].lowpass_filter);
-                        else if (_filter.name == "REVERB")      load_shared_settings_filter(_filter, beepsource_list[x].reverb_filter);
-                    }
+                    foreach (ConfigNode innerConfigNode in configNode.nodes)
+                        load_shared_settings_filter(innerConfigNode, beepsource_list[x]);
                 }
             }
             Log.dbg("load_shared_settings() END");
         }
+
+        private void load_shared_settings_filter(ConfigNode configNode, AudioSettings audioSettings)
+		{
+            if (configNode.name == "CHORUS")           load_shared_settings_filter(configNode, audioSettings.chorus_filter);
+            else if (configNode.name == "DISTORTION")  load_shared_settings_filter(configNode, audioSettings.distortion_filter);
+            else if (configNode.name == "ECHO")        load_shared_settings_filter(configNode, audioSettings.echo_filter);
+            else if (configNode.name == "HIGHPASS")    load_shared_settings_filter(configNode, audioSettings.highpass_filter);
+            else if (configNode.name == "LOWPASS")     load_shared_settings_filter(configNode, audioSettings.lowpass_filter);
+            else if (configNode.name == "REVERB")      load_shared_settings_filter(configNode, audioSettings.reverb_filter);
+		}
 
         //Functions for per-vessel settings
         private void new_vessel_node(Vessel v)
@@ -723,8 +688,6 @@ namespace Chatterer
 
             save_shared_settings(vessel_node);
             vessel_settings.Node.AddNode("VESSEL", vessel_node);
-
-            UnityEngine.Debug.Log(vessel_settings.Node.ToString());
 
             Log.dbg("new_vessel_node() :: vessel_node added to vessel_settings_node");
         }
@@ -752,7 +715,7 @@ namespace Chatterer
 
             if (chatter_array.Count == 0)
             {
-                Log.dbg("No audiosets found in config, adding defaults");
+                Log.warn("No audiosets found in config, adding defaults");
                 add_default_audiosets();
             }
 

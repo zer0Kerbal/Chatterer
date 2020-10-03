@@ -56,6 +56,7 @@ using KSP.UI.Screens;
 
 using Asset = KSPe.IO.Asset<Chatterer.Startup>;
 using GDBAsset = KSPe.GameDB.Asset<Chatterer.Startup>;
+using File = KSPe.IO.File<Chatterer.Startup>;
 
 namespace Chatterer
 {
@@ -76,9 +77,36 @@ namespace Chatterer
             directory = "dir";
             is_active = true;
         }
+
+		internal static ChatterAudioList createFrom(ConfigNode cn)
+		{
+			ChatterAudioList r = new ChatterAudioList();
+			if (cn.HasValue("directory")) r.directory = cn.GetValue("directory");
+			if (cn.HasValue("is_active")) r.is_active = Boolean.Parse(cn.GetValue("is_active"));
+			return r;
+		}
+	}
+
+    public class AudioSettings
+    {
+        public AudioChorusFilter chorus_filter;
+        public AudioDistortionFilter distortion_filter;
+        public AudioEchoFilter echo_filter;
+        public AudioHighPassFilter highpass_filter;
+        public AudioLowPassFilter lowpass_filter;
+        public AudioReverbFilter reverb_filter;
+        public AudioReverbPreset reverb_preset;
+        public int reverb_preset_index;
+        public int sel_filter; //currently selected filter in filters window
+
+        public AudioSettings()
+        {
+            sel_filter = 0;
+            reverb_preset_index = 0;
+        }
     }
 
-    public class BeepSource
+    public class BeepSource : AudioSettings
     {
         //class to manage beeps
         public GameObject beep_player;
@@ -98,17 +126,8 @@ namespace Chatterer
         public float timer;
         public string current_clip;
         public bool randomizeBeep;
-        public int sel_filter;
-        public AudioChorusFilter chorus_filter;
-        public AudioDistortionFilter distortion_filter;
-        public AudioEchoFilter echo_filter;
-        public AudioHighPassFilter highpass_filter;
-        public AudioLowPassFilter lowpass_filter;
-        public AudioReverbFilter reverb_filter;
-        public AudioReverbPreset reverb_preset;
-        public int reverb_preset_index;
 
-        public BeepSource()
+        public BeepSource() : base()
         {
             settings_window_pos = new Rect(Screen.width / 2f, Screen.height / 2f, 10f, 10f);
             show_settings_window = false;
@@ -122,8 +141,6 @@ namespace Chatterer
             loose_timer_limit = 0;
             timer = 0;
             randomizeBeep = false;
-            sel_filter = 0;
-            reverb_preset_index = 0;
         }
     }
 
@@ -174,23 +191,23 @@ namespace Chatterer
         private AudioSource sstv = new AudioSource();
 
         //All beep objects, audiosources, and filters are managed by BeepSource class
-        private List<BeepSource> beepsource_list = new List<BeepSource>();     //List to hold the BeepSources
-        private List<BackgroundSource> backgroundsource_list = new List<BackgroundSource>();    //list to hold the BackgroundSources
+        private readonly List<BeepSource> beepsource_list = new List<BeepSource>();     //List to hold the BeepSources
+        private readonly List<BackgroundSource> backgroundsource_list = new List<BackgroundSource>();    //list to hold the BackgroundSources
         
         //Chatter, SSTV, and beep audio sample Lists and Dictionaries
-        private List<ChatterAudioList> chatter_array = new List<ChatterAudioList>();        //array of all chatter clips and some settings
-        private Dictionary<string, AudioClip> dict_probe_samples = new Dictionary<string, AudioClip>();
-        private Dictionary<AudioClip, string> dict_probe_samples2 = new Dictionary<AudioClip, string>();
-        private List<AudioClip> all_sstv_clips = new List<AudioClip>();
-        private Dictionary<string, AudioClip> dict_background_samples = new Dictionary<string, AudioClip>();
-        private Dictionary<AudioClip, string> dict_background_samples2 = new Dictionary<AudioClip, string>();
-        private Dictionary<string, AudioClip> dict_soundscape_samples = new Dictionary<string, AudioClip>();
-        private Dictionary<AudioClip, string> dict_soundscape_samples2 = new Dictionary<AudioClip, string>();
+        private readonly List<ChatterAudioList> chatter_array = new List<ChatterAudioList>();        //array of all chatter clips and some settings
+        private readonly Dictionary<string, AudioClip> dict_probe_samples = new Dictionary<string, AudioClip>();
+        private readonly Dictionary<AudioClip, string> dict_probe_samples2 = new Dictionary<AudioClip, string>();
+        private readonly List<AudioClip> all_sstv_clips = new List<AudioClip>();
+        private readonly Dictionary<string, AudioClip> dict_background_samples = new Dictionary<string, AudioClip>();
+        private readonly Dictionary<AudioClip, string> dict_background_samples2 = new Dictionary<AudioClip, string>();
+        private readonly Dictionary<string, AudioClip> dict_soundscape_samples = new Dictionary<string, AudioClip>();
+        private readonly Dictionary<AudioClip, string> dict_soundscape_samples2 = new Dictionary<AudioClip, string>();
 
         //Chatter audio lists
-        private List<AudioClip> current_capcom_chatter = new List<AudioClip>();     //holds chatter of toggled sets
-        private List<AudioClip> current_capsule_chatter = new List<AudioClip>();    //one of these becomes initial, the other response
-        private List<AudioClip> current_capsuleF_chatter = new List<AudioClip>(); //Female set
+        private readonly List<AudioClip> current_capcom_chatter = new List<AudioClip>();     //holds chatter of toggled sets
+        private readonly List<AudioClip> current_capsule_chatter = new List<AudioClip>();    //one of these becomes initial, the other response
+        private readonly List<AudioClip> current_capsuleF_chatter = new List<AudioClip>(); //Female set
         private int current_capcom_clip;
         private int current_capsule_clip;
         private int current_capsuleF_clip;
@@ -202,7 +219,6 @@ namespace Chatterer
         //Chatter variables
         private bool exchange_playing = false;
         private bool pod_begins_exchange = false;
-        private bool chatter_is_female = false;
         private bool was_on_EVA = false;
         private int initial_chatter_source; //whether capsule or capcom begins exchange
         private List<AudioClip> initial_chatter_set = new List<AudioClip>();    //random clip pulled from here
@@ -353,7 +369,7 @@ namespace Chatterer
         private AudioSource landingsource = new AudioSource();
         private AudioSource yep_yepsource = new AudioSource();
 
-
+        static readonly string[] AUDIO_FILE_EXTS = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
 
         //////////////////////////////////////////////////
         //////////////////////////////////////////////////
@@ -661,17 +677,18 @@ namespace Chatterer
             Log.dbg("OnGameUnpause() : Mute = {0}", mute_all);
         }
 
-        private void checkChatterGender()
+        private bool checkChatterGender()
         {
-            chatter_is_female = false;
-            var crew = vessel.GetVesselCrew();
-            if (crew.Count > 0) chatter_is_female = ProtoCrewMember.Gender.Female == crew[0].gender ? true : false;
+            bool chatter_is_female = false;
+			List<ProtoCrewMember> crew = vessel.GetVesselCrew();
+            if (crew.Count > 0) chatter_is_female = (ProtoCrewMember.Gender.Female == crew[0].gender);
 
             if (debugging)
             {
                 if (crew.Count == 0) Log.info("No Chatter gender check (no crew in the vicinity)");
                 else Log.info("Chatter is female :{0}", chatter_is_female);
             }
+            return chatter_is_female;
         }
 
         internal void OnDestroy() 
@@ -1040,16 +1057,17 @@ namespace Chatterer
 
                 if (show_chatter_sets)
                 {
-                    int i;
-                    for (i = 0; i < chatter_array.Count; i++)
+                    for (int i = 0; i < chatter_array.Count; i++)
                     {
                         GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
 
-                        bool temp = chatter_array[i].is_active;
-                        _content.text = chatter_array[i].directory + " (" + (chatter_array[i].capcom.Count + chatter_array[i].capsule.Count + chatter_array[i].capsuleF.Count).ToString() + " clips)";
-                        if (chatter_array[i].capsuleF.Count > 0) _content.text = _content.text + " (Female set in)";
+                        ChatterAudioList cal = chatter_array[i];
+                        bool temp = cal.is_active;
+
+                        _content.text = cal.directory + " (" + (cal.capcom.Count + cal.capsule.Count + cal.capsuleF.Count).ToString() + " clips)";
+                        if (cal.capsuleF.Count > 0) _content.text = _content.text + " (Female set in)";
                         _content.tooltip = "Toggle this chatter set on/off";
-                        chatter_array[i].is_active = GUILayout.Toggle(chatter_array[i].is_active, _content, GUILayout.ExpandWidth(true));
+                        cal.is_active = GUILayout.Toggle(cal.is_active, _content, GUILayout.ExpandWidth(true));
                         _content.text = "Remove";
                         _content.tooltip = "Remove this chatter set from the list";
                         if (GUILayout.Button(_content, GUILayout.ExpandWidth(false)))
@@ -1057,10 +1075,9 @@ namespace Chatterer
                             //Remove this set
                             chatter_array.RemoveAt(i);
                             load_chatter_audio();
+                            load_toggled_chatter_sets();    //reload toggled audio clips
                             break;
                         }
-
-                        if (temp != chatter_array[i].is_active) load_toggled_chatter_sets();    //reload toggled audio clips if any set is toggled on/off
 
                         GUILayout.EndHorizontal();
                     }
@@ -1077,15 +1094,19 @@ namespace Chatterer
                         foreach (ChatterAudioList r in chatter_array)
                         {
                             //check if this set is already loaded
-                            if (custom_dir_name == r.directory) already_loaded = true;
+                            already_loaded = (custom_dir_name == r.directory);
+                            if (already_loaded) break;
                         }
 
-                        if (custom_dir_name.Trim() != "" && custom_dir_name != "directory name" && already_loaded == false)
+                        if (custom_dir_name.Trim() != "" && custom_dir_name != "directory name" && !already_loaded)
                         {
-                            //set name isn't blank, "directory name", or already loaded.  load it.
-                            chatter_array.Add(new ChatterAudioList());
-                            chatter_array[chatter_array.Count - 1].directory = custom_dir_name.Trim();
-                            chatter_array[chatter_array.Count - 1].is_active = true;
+							//set name isn't blank, "directory name", or already loaded.  load it.
+							ChatterAudioList cal = new ChatterAudioList
+							{
+								directory = custom_dir_name.Trim(),
+								is_active = true
+							};
+							chatter_array.Add(cal);
 
                             //reset custom_dir_name
                             custom_dir_name = "directory name";
@@ -1931,7 +1952,7 @@ namespace Chatterer
 
 
             //AudioReverbPreset arp = new AudioReverbPreset();
-            //chatter_reverb_filter.reverbPreset = AudioReverbPreset.Alley;
+            //chatter.reverb_filter.reverbPreset = AudioReverbPreset.Alley;
 
             //AudioReverbPreset[] preset_list = Enum.GetValues(typeof(AudioReverbPreset)) as AudioReverbPreset[];
 
@@ -2234,55 +2255,54 @@ namespace Chatterer
         //Create/destroy sources
         private void add_new_beepsource()
         {
-            beepsource_list.Add(new BeepSource());
-
-            int x = beepsource_list.Count - 1;
-
-            beepsource_list[x].beep_player = new GameObject();
-            beepsource_list[x].beep_player.name = "rbr_beep_player_" + beepsource_list.Count;
-            beepsource_list[x].beep_name = beepsource_list.Count.ToString();
-            beepsource_list[x].audiosource = beepsource_list[x].beep_player.AddComponent<AudioSource>();
-            beepsource_list[x].audiosource.volume = 0.3f;   //default 30%
-            beepsource_list[x].audiosource.spatialBlend = 0.0f;
-            //beepsource_list[x].audiosource.clip = all_beep_clips[0];
-            beepsource_list[x].current_clip = "First";
-            beepsource_list[x].chorus_filter = beepsource_list[x].beep_player.AddComponent<AudioChorusFilter>();
-            beepsource_list[x].chorus_filter.enabled = false;
-            beepsource_list[x].distortion_filter = beepsource_list[x].beep_player.AddComponent<AudioDistortionFilter>();
-            beepsource_list[x].distortion_filter.enabled = false;
-            beepsource_list[x].echo_filter = beepsource_list[x].beep_player.AddComponent<AudioEchoFilter>();
-            beepsource_list[x].echo_filter.enabled = false;
-            beepsource_list[x].highpass_filter = beepsource_list[x].beep_player.AddComponent<AudioHighPassFilter>();
-            beepsource_list[x].highpass_filter.enabled = false;
-            beepsource_list[x].lowpass_filter = beepsource_list[x].beep_player.AddComponent<AudioLowPassFilter>();
-            beepsource_list[x].lowpass_filter.enabled = false;
-            beepsource_list[x].reverb_filter = beepsource_list[x].beep_player.AddComponent<AudioReverbFilter>();
-            beepsource_list[x].reverb_filter.enabled = false;
+            BeepSource beepSource = new BeepSource();
+            beepSource.beep_player = new GameObject();
+            beepSource.beep_player.name = "rbr_beep_player_" + beepsource_list.Count;
+            beepSource.beep_name = beepsource_list.Count.ToString();
+            beepSource.audiosource = beepSource.beep_player.AddComponent<AudioSource>();
+            beepSource.audiosource.volume = 0.3f;   //default 30%
+            beepSource.audiosource.spatialBlend = 0.0f;
+            //beepSource.audiosource.clip = all_beep_clips[0];
+            beepSource.current_clip = "First";
+            beepSource.chorus_filter = beepSource.beep_player.AddComponent<AudioChorusFilter>();
+            beepSource.chorus_filter.enabled = false;
+            beepSource.distortion_filter = beepSource.beep_player.AddComponent<AudioDistortionFilter>();
+            beepSource.distortion_filter.enabled = false;
+            beepSource.echo_filter = beepSource.beep_player.AddComponent<AudioEchoFilter>();
+            beepSource.echo_filter.enabled = false;
+            beepSource.highpass_filter = beepSource.beep_player.AddComponent<AudioHighPassFilter>();
+            beepSource.highpass_filter.enabled = false;
+            beepSource.lowpass_filter = beepSource.beep_player.AddComponent<AudioLowPassFilter>();
+            beepSource.lowpass_filter.enabled = false;
+            beepSource.reverb_filter = beepSource.beep_player.AddComponent<AudioReverbFilter>();
+            beepSource.reverb_filter.enabled = false;
 
             if (dict_probe_samples.Count > 0)
             {
-                set_beep_clip(beepsource_list[x]);   //set
+                set_beep_clip(beepSource);   //set
 
-                if (beepsource_list[x].precise == false && beepsource_list[x].loose_freq > 0) new_beep_loose_timer_limit(beepsource_list[x]);
+                if (beepSource.precise == false && beepSource.loose_freq > 0) new_beep_loose_timer_limit(beepSource);
             }
+
+            beepsource_list.Add(beepSource);
         }
 
         private void add_new_backgroundsource()
         {
-            backgroundsource_list.Add(new BackgroundSource());
+            BackgroundSource backgroundSource = new BackgroundSource();
 
-            int x = backgroundsource_list.Count - 1;
+            backgroundSource.background_player = new GameObject();
+            backgroundSource.background_player.name = "rbr_background_player_" + backgroundsource_list.Count;
+            backgroundSource.audiosource = backgroundSource.background_player.AddComponent<AudioSource>();
+            backgroundSource.audiosource.volume = 0.3f;
+            backgroundSource.audiosource.spatialBlend = 0.0f;
+            backgroundSource.current_clip = "Default";
 
-            backgroundsource_list[x].background_player = new GameObject();
-            backgroundsource_list[x].background_player.name = "rbr_background_player_" + backgroundsource_list.Count;
-            backgroundsource_list[x].audiosource = backgroundsource_list[x].background_player.AddComponent<AudioSource>();
-            backgroundsource_list[x].audiosource.volume = 0.3f;
-            backgroundsource_list[x].audiosource.spatialBlend = 0.0f;
-            backgroundsource_list[x].current_clip = "Default";
+            backgroundsource_list.Add(backgroundSource);
 
             if (dict_background_samples.Count > 0)
             {
-                set_background_clip(backgroundsource_list[x]);  //set clip
+                set_background_clip(backgroundSource);  //set clip
             }
         }
 
@@ -2388,7 +2408,7 @@ namespace Chatterer
         {
             //Create two AudioSources for quindar so PlayDelayed() can delay both beeps
             Log.dbg("loading quindar_01 clip");
-            string path1 = GDBAsset.Solve("Sounds", "chatter/quindar_01");
+            string path1 = GDBAsset.Solve("Sounds", "chatter", "quindar_01");
 
             if (GameDatabase.Instance.ExistsAudioClip(path1))
             {
@@ -2398,7 +2418,7 @@ namespace Chatterer
             else Log.warn("quindar_01 audio file missing!");
 
             Log.dbg("loading quindar_02 clip");
-            string path2 = GDBAsset.Solve("Sounds", "chatter/quindar_02");
+            string path2 = GDBAsset.Solve("Sounds", "chatter", "quindar_02");
 
             if (GameDatabase.Instance.ExistsAudioClip(path2))
             {
@@ -2408,44 +2428,32 @@ namespace Chatterer
             else Log.warn("quindar_02 audio file missing!");
 
             Log.dbg("loading voidnoise clip");
-            string path3 = GDBAsset.Solve("Sounds", "chatter/voidnoise");
+            string path3 = GDBAsset.Solve("Sounds", "chatter", "voidnoise");
 
             if (GameDatabase.Instance.ExistsAudioClip(path3))
             {
                 voidnoise_clip = GameDatabase.Instance.GetAudioClip(path3);
                 Log.dbg("voidnoise clip loaded");
             }
-            else Log.warn("quindar_02 audio file missing!");
+            else Log.warn("voidnoise audio file missing!");
         }
 
         private void load_beep_audio()
         {
-            string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-
-            string probe_sounds_root = GDBAsset.Solve("Sounds", "beeps");
+            string probe_sounds_root = GDBAsset.SourceDir("Sounds", "beeps");
 
             if (Directory.Exists(probe_sounds_root))
             {
                 beeps_exists = true;
 
                 string[] st_array;
-                foreach (string ext in audio_file_ext)
+                foreach (string ext in AUDIO_FILE_EXTS)
                 {
                     //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(probe_sounds_root, ext);
                     foreach (string file in st_array)
                     {
-                        //Log.dbg("probe file = " + file);
-                        //[CHATR] file = C:/KSP/ksp-win-0-21-1/KSP_win/GameData/RBR/Sounds/apollo11/capcom/capcom_16.ogg
-
-                        //tear out the whole root + directory + st + one more for final slash
-                        int start_pos = probe_sounds_root.Length;
-                        string file_name = file.Substring(start_pos);
-                        //end pos to find the pos of the "."
-                        int end_pos = file_name.LastIndexOf(".");
-                        //now need a length between 
-
-                        string short_file_name = file_name.Substring(0, end_pos);
+                        string short_file_name = Path.GetFileNameWithoutExtension(file);
 
                         //Log.dbg("file_name = " + file_name);
 
@@ -2468,7 +2476,7 @@ namespace Chatterer
                         }
                         else
                         {
-                            string gdb_path = GDBAsset.Solve("Sounds", "beeps/" + short_file_name);
+                            string gdb_path = GDBAsset.Solve("Sounds", "beeps", short_file_name);
                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                             {
                                 //all_beep_clips.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
@@ -2485,36 +2493,27 @@ namespace Chatterer
                     }
                 }
             }
+            if (dict_probe_samples.Count == 0) Log.warn("No SSTV clips found");
         }
 
         private void load_sstv_audio()
         {
-            string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-
-            string sstv_sounds_root = GDBAsset.Solve("Sounds", "sstv");
+            string sstv_sounds_root = GDBAsset.SourceDir("Sounds", "sstv");
 
             if (Directory.Exists(sstv_sounds_root))
             {
                 sstv_exists = true;
 
                 string[] st_array;
-                foreach (string ext in audio_file_ext)
+                foreach (string ext in AUDIO_FILE_EXTS)
                 {
-                    //Log.dbg("checking for " + ext + " files...");
+                    Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sstv_sounds_root, ext);
                     foreach (string file in st_array)
                     {
-                        //Log.dbg("sstv file = " + file);
-                        
-                        //tear out the whole root + directory + st + one more for final slash
-                        int start_pos = sstv_sounds_root.Length;
-                        string file_name = file.Substring(start_pos);
-                        //end pos to find the pos of the "."
-                        int end_pos = file_name.LastIndexOf(".");
-                        //now need a length between 
+                        Log.dbg("sstv file = " + file);
 
-                        string short_file_name = file_name.Substring(0, end_pos);
-
+                        string short_file_name = Path.GetFileNameWithoutExtension(file);
                         //Log.dbg("file_name = " + file_name);
 
                         if (ext == "*.mp3")
@@ -2535,7 +2534,7 @@ namespace Chatterer
                         }
                         else
                         {
-                            string gdb_path = GDBAsset.Solve("Sounds", "sstv/" + short_file_name);
+                            string gdb_path = GDBAsset.Solve("Sounds", "sstv", short_file_name);
                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                             {
                                 all_sstv_clips.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
@@ -2549,9 +2548,15 @@ namespace Chatterer
                     }
                 }
             }
+            else
+            {
+                Log.warn("Directory '{0}' for 'SSTV' could not be found", sstv_sounds_root);
+            }
+
             if (all_sstv_clips.Count == 0) Log.warn("No SSTV clips found");
         }
 
+        static readonly string[] AUDIOSET_TYPES = { "capcom", "capsule", "capsuleF" };
         private void load_chatter_audio()
         {
 
@@ -2559,12 +2564,7 @@ namespace Chatterer
             //check for a capsule directory
             //if exists, run GetFiles() for each of the file extensions
 
-
-            string[] set_types = { "capcom", "capsule", "capsuleF" };
-            string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-            int k;
-
-            string chatter_root = GDBAsset.Solve("Sounds", "chatter");
+            string chatter_root = GDBAsset.SourceDir("Sounds", "chatter");
 
             if (Directory.Exists(chatter_root))
             {
@@ -2572,96 +2572,86 @@ namespace Chatterer
 
                 Log.dbg("loading chatter audio...");
 
-                for (k = 0; k < chatter_array.Count; k++)
+                for (int k = 0; k < chatter_array.Count; k++)
                 {
-                    if (Directory.Exists(chatter_root + chatter_array[k].directory))
+                    ChatterAudioList chatter_array_k = chatter_array[k];
+                    string audioset_root = Path.Combine(chatter_root, chatter_array_k.directory);
+                    if (Directory.Exists(audioset_root))
                     {
                         //audioset directory found OK
-                        //Log.dbg("directory [" + chatter_array[k].directory + "] found OK");
-                        foreach (string st in set_types)
+                        //Log.dbg("directory [" + chatter_array_k.directory + "] found OK");
+                        foreach (string st in AUDIOSET_TYPES)
                         {
+                            string audioset_type_root = Path.Combine(audioset_root, st);
                             //search through each set_type (capcom, capsule, capsuleF)
-                            if (Directory.Exists(chatter_root + chatter_array[k].directory + "/" + st))
+                            if (Directory.Exists(audioset_type_root))
                             {
-                                //Log.dbg("directory [" + chatter_array[k].directory + "/" + st + "] found OK");
+                                Log.dbg("directory [{0}] found OK", audioset_type_root);
 
-                                //Log.dbg("clearing existing " + chatter_array[k].directory + "/" + st + " audio");
-                                if (st == "capcom") chatter_array[k].capcom.Clear();
-                                else if (st == "capsule") chatter_array[k].capsule.Clear();
-                                else if (st == "capsuleF") chatter_array[k].capsuleF.Clear();//clear any existing audio
+                                //clear any existing audio
+                                if (st == "capcom") chatter_array_k.capcom.Clear();
+                                else if (st == "capsule") chatter_array_k.capsule.Clear();
+                                else if (st == "capsuleF") chatter_array_k.capsuleF.Clear();
 
                                 string[] st_array;
-                                foreach (string ext in audio_file_ext)
+                                foreach (string ext in AUDIO_FILE_EXTS)
                                 {
                                     //Log.dbg("checking for " + ext + " files...");
-                                    st_array = Directory.GetFiles(chatter_root + chatter_array[k].directory + "/" + st + "/", ext);
+                                    st_array = Directory.GetFiles(audioset_type_root, ext);
                                     foreach (string file in st_array)
                                     {
-                                        //Log.dbg("file = " + file);
-                                        //[CHATR] file = C:/KSP/ksp-win-0-21-1/KSP_win/GameData/RBR/Sounds/apollo11/capcom\capcom_16.ogg
-                                        //try it anyway
-                                        //substring the capcom_16 out of file
-
-                                        //tear out the whole root + directory + st + one more for final slash
-                                        int start_pos = (chatter_root + chatter_array[k].directory + "/" + st + "/").Length;
-                                        string file_name = file.Substring(start_pos);
-                                        //end pos to find the pos of the "."
-                                        int end_pos = file_name.LastIndexOf(".");
-                                        //now need a length between 
-
-                                        file_name = file_name.Substring(0, end_pos);
-
+                                        string file_name = Path.GetFileNameWithoutExtension(file);
                                         //Log.dbg("file_name = " + file_name);
 
                                         if (ext == "*.mp3")
                                         {
                                             //try old method
-                                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/chatter/" + chatter_array[k].directory + "/" + st + "/" + file_name + ".mp3";
+                                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/chatter/" + chatter_array_k.directory + "/" + st + "/" + file_name + ".mp3";
                                             //WWW www_chatter = new WWW(mp3_path);
                                             //if (www_chatter != null)
                                             //{
                                             //    if (st == "capcom")
                                             //    {
-                                            //        chatter_array[k].capcom.Add(www_chatter.GetAudioClip(false));
+                                            //        chatter_array_k.capcom.Add(www_chatter.GetAudioClip(false));
                                             //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //    else if (st == "capsule")
                                             //    {
-                                            //        chatter_array[k].capsule.Add(www_chatter.GetAudioClip(false));
+                                            //        chatter_array_k.capsule.Add(www_chatter.GetAudioClip(false));
                                             //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //    else if (st == "capsuleF")
                                             //    {
-                                            //        chatter_array[k].capsuleF.Add(www_chatter.GetAudioClip(false));
+                                            //        chatter_array_k.capsuleF.Add(www_chatter.GetAudioClip(false));
                                             //        //Log.dbg("" + mp3_path + " loaded OK");
                                             //    }
                                             //}
                                         }
                                         else
                                         {
-                                            string gdb_path = GDBAsset.Solve("Sounds", "chatter", chatter_array[k].directory, st, file_name);
+                                            string gdb_path = GDBAsset.Solve("Sounds", "chatter", chatter_array_k.directory, st, file_name);
                                             if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
                                             {
                                                 if (st == "capcom")
                                                 {
-                                                    chatter_array[k].capcom.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //Log.dbg("" + gdb_path + " loaded OK");
+                                                    chatter_array_k.capcom.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
+                                                    Log.dbg("[{0}] loaded OK", gdb_path);
                                                 }
                                                 else if (st == "capsule")
                                                 {
-                                                    chatter_array[k].capsule.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //Log.dbg("" + gdb_path + " loaded OK");
+                                                    chatter_array_k.capsule.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
+                                                    Log.dbg("[{0}] loaded OK", gdb_path);
                                                 }
                                                 else if (st == "capsuleF")
                                                 {
-                                                    chatter_array[k].capsuleF.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
-                                                    //Log.dbg("" + gdb_path + " loaded OK");
+                                                    chatter_array_k.capsuleF.Add(GameDatabase.Instance.GetAudioClip(gdb_path));
+                                                    Log.dbg("[{0}] loaded OK", gdb_path);
                                                 }
                                             }
                                             else
                                             {
                                                 //no audio exists at gdb_path
-                                                Log.warn("{0} load FAIL, trying old method", gdb_path);
+                                                Log.warn("{0} load FAIL", gdb_path);
                                             }
                                         }
                                     }
@@ -2669,16 +2659,20 @@ namespace Chatterer
                             }
                             else
                             {
-                                Log.warn("directory [{0}/{1}] NOT found, skipping...", chatter_array[k].directory, st);
+                                Log.warn("directory [{0}/{1}] NOT found, skipping...", chatter_array_k.directory, st);
                             }
                         }
                     }
                     else
                     {
                         //audioset directory NOT found
-                        Log.warn("directory [{0}] NOT found, skipping...", chatter_array[k].directory);
+                        Log.warn("directory [{0}] NOT found, skipping...", chatter_array_k.directory);
                     }
                 }
+            }
+            else
+            {
+                Log.warn("Directory '{0}' for 'chatter' could not be found", chatter_root);
             }
 
             load_toggled_chatter_sets();
@@ -2686,25 +2680,20 @@ namespace Chatterer
 
         private void load_AAE_background_audio()
         {
-            string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-            string sounds_path = GDBAsset.Solve("Sounds", "AAE", "background");
+            string sounds_path = GDBAsset.SourceDir("Sounds", "AAE", "background");
 
             if (Directory.Exists(sounds_path))
             {
                 //AAE_exists = true;  //set flag to display and run AAE functions if any AAE is found
 
                 string[] st_array;
-                foreach (string ext in audio_file_ext)
+                foreach (string ext in AUDIO_FILE_EXTS)
                 {
                     //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sounds_path, ext);
                     foreach (string file in st_array)
                     {
-                        //get the file name without extension
-                        int start_pos = sounds_path.Length;
-                        string file_name = file.Substring(start_pos);
-                        int end_pos = file_name.LastIndexOf(".");
-                        file_name = file_name.Substring(0, end_pos);
+                        string file_name = Path.GetFileNameWithoutExtension(file);
 
                         string gdb_path = GDBAsset.Solve("Sounds", "AAE", "background", file_name);
                         if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
@@ -2731,25 +2720,20 @@ namespace Chatterer
 
         private void load_AAE_soundscape_audio()
         {
-            string[] audio_file_ext = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
-            string sounds_path = GDBAsset.Solve("Sounds", "AAE", "soundscape");
+            string sounds_path = GDBAsset.SourceDir("Sounds", "AAE", "soundscape");
 
             if (Directory.Exists(sounds_path))
             {
                 //AAE_exists = true;  //set flag to display and run AAE functions if any AAE is found
 
                 string[] st_array;
-                foreach (string ext in audio_file_ext)
+                foreach (string ext in AUDIO_FILE_EXTS)
                 {
                     //Log.dbg("checking for " + ext + " files...");
                     st_array = Directory.GetFiles(sounds_path, ext);
                     foreach (string file in st_array)
                     {
-                        //get the file name without extension
-                        int start_pos = sounds_path.Length;
-                        string file_name = file.Substring(start_pos);
-                        int end_pos = file_name.LastIndexOf(".");
-                        file_name = file_name.Substring(0, end_pos);
+                        string file_name = Path.GetFileNameWithoutExtension(file);
 
                         string gdb_path = GDBAsset.Solve("Sounds", "AAE", "soundscape", file_name);
                         if (GameDatabase.Instance.ExistsAudioClip(gdb_path))
@@ -2810,10 +2794,9 @@ namespace Chatterer
             current_capsule_chatter.Clear();
             current_capsuleF_chatter.Clear();
 
-            int i;
-            for (i = 0; i < chatter_array.Count; i++)
+            for (int i = 0; i < chatter_array.Count; i++)
             {
-                if (chatter_array[i].is_active == true)
+                if (chatter_array[i].is_active)
                 {
                     current_capcom_chatter.AddRange(chatter_array[i].capcom);
                     current_capsule_chatter.AddRange(chatter_array[i].capsule);
@@ -2840,9 +2823,10 @@ namespace Chatterer
             set_new_delay_between_exchanges();
             secs_since_last_exchange = 0;
             
+            bool chatter_is_female = false;
             if (FlightGlobals.ActiveVessel != null) //Avoid EXP on first load where vessel isn't loaded yet
             {
-                checkChatterGender(); //Check chatter gender to play female/male voice accordingly
+                chatter_is_female = checkChatterGender(); //Check chatter gender to play female/male voice accordingly
             }
 
             current_capcom_clip = rand.Next(0, current_capcom_chatter.Count); // select a new capcom clip to play
@@ -3127,23 +3111,16 @@ namespace Chatterer
         }
         
         //Set some default stuff
+        private static string[] add_default_audiosets_directories = {"apollo11", "sts1", "russian", "valentina"};
         private void add_default_audiosets()
         {
-            chatter_array.Add(new ChatterAudioList());
-            chatter_array[0].directory = "apollo11";
-            chatter_array[0].is_active = true;
-
-            chatter_array.Add(new ChatterAudioList());
-            chatter_array[1].directory = "sts1";
-            chatter_array[1].is_active = true;
-
-            chatter_array.Add(new ChatterAudioList());
-            chatter_array[2].directory = "russian";
-            chatter_array[2].is_active = true;
-
-            chatter_array.Add(new ChatterAudioList());
-            chatter_array[3].directory = "valentina";
-            chatter_array[3].is_active = true;
+            foreach (string dir in add_default_audiosets_directories)
+            {
+                ChatterAudioList cal = new ChatterAudioList();
+                cal.directory = dir;
+                cal.is_active = true;
+                chatter_array.Add(cal);
+            }
 
             Log.dbg("audioset defaults added :: new count = {0}", chatter_array.Count);
         }
@@ -3326,18 +3303,18 @@ namespace Chatterer
             quindar2 = chatter_player.AddComponent<AudioSource>();
             quindar2.volume = quindar_vol_slider;
             quindar2.spatialBlend = 0.0f;
-            chatter_chorus_filter = chatter_player.AddComponent<AudioChorusFilter>();
-            chatter_chorus_filter.enabled = false;
-            chatter_distortion_filter = chatter_player.AddComponent<AudioDistortionFilter>();
-            chatter_distortion_filter.enabled = false;
-            chatter_echo_filter = chatter_player.AddComponent<AudioEchoFilter>();
-            chatter_echo_filter.enabled = false;
-            chatter_highpass_filter = chatter_player.AddComponent<AudioHighPassFilter>();
-            chatter_highpass_filter.enabled = false;
-            chatter_lowpass_filter = chatter_player.AddComponent<AudioLowPassFilter>();
-            chatter_lowpass_filter.enabled = false;
-            chatter_reverb_filter = chatter_player.AddComponent<AudioReverbFilter>();
-            chatter_reverb_filter.enabled = false;
+            chatter.chorus_filter = chatter_player.AddComponent<AudioChorusFilter>();
+            chatter.chorus_filter.enabled = false;
+            chatter.distortion_filter = chatter_player.AddComponent<AudioDistortionFilter>();
+            chatter.distortion_filter.enabled = false;
+            chatter.echo_filter = chatter_player.AddComponent<AudioEchoFilter>();
+            chatter.echo_filter.enabled = false;
+            chatter.highpass_filter = chatter_player.AddComponent<AudioHighPassFilter>();
+            chatter.highpass_filter.enabled = false;
+            chatter.lowpass_filter = chatter_player.AddComponent<AudioLowPassFilter>();
+            chatter.lowpass_filter.enabled = false;
+            chatter.reverb_filter = chatter_player.AddComponent<AudioReverbFilter>();
+            chatter.reverb_filter.enabled = false;
 
 
             //AAE
@@ -3422,8 +3399,6 @@ namespace Chatterer
                 Log.warn("{0} not found", landing_path);
             }
 
-
-
             load_beep_audio();      // this must run before loading settings (else no beep clips to assign to sources))
 
             this.line_512x4                         = Asset.Texture2D.LoadFromFile(false, "Textures", "line_512x4");
@@ -3440,7 +3415,6 @@ namespace Chatterer
             this.chatterer_button_disabled_muted    = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_disabled_muted");
 
             load_plugin_settings();
-
 
             load_quindar_audio();
             quindar1.clip = quindar_01_clip;

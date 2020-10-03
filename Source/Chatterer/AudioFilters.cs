@@ -35,17 +35,8 @@ namespace Chatterer
         protected Rect chatter_filter_settings_window_pos = new Rect(Screen.width / 2, Screen.height / 2, 10f, 10f);
         private int chatter_filter_settings_window_id;
 
-        //GUI
-        private int chatter_sel_filter;     //currently selected filter in filters window
-
         //Chatter filters
-        private AudioChorusFilter chatter_chorus_filter;
-        private AudioDistortionFilter chatter_distortion_filter;
-        private AudioEchoFilter chatter_echo_filter;
-        private AudioHighPassFilter chatter_highpass_filter;
-        private AudioLowPassFilter chatter_lowpass_filter;
-        private AudioReverbFilter chatter_reverb_filter;
-        private int chatter_reverb_preset_index = 0;
+        private readonly AudioSettings chatter = new AudioSettings();
 
         //Clipboards
         private ConfigNode filters_clipboard;
@@ -60,15 +51,14 @@ namespace Chatterer
         private ConfigNode filter_defaults;
 
 
+        static private readonly string[] FILTERS = { "Chorus", "Dist", "Echo", "HiPass", "LoPass", "Reverb" };
         private void chatter_filter_settings_gui(int window_id)
         {
             GUILayout.BeginVertical();
 
-            string[] filters = { "Chorus", "Dist", "Echo", "HiPass", "LoPass", "Reverb" };
+            chatter.sel_filter = GUILayout.SelectionGrid(chatter.sel_filter, FILTERS, 3, GUILayout.ExpandWidth(true));
 
-            chatter_sel_filter = GUILayout.SelectionGrid(chatter_sel_filter, filters, 3, GUILayout.ExpandWidth(true));
-
-            chatter_reverb_preset_index = combined_filter_settings_gui(chatter_sel_filter, chatter_chorus_filter, chatter_distortion_filter, chatter_echo_filter, chatter_highpass_filter, chatter_lowpass_filter, chatter_reverb_filter, chatter_reverb_preset_index);
+            chatter.reverb_preset_index = combined_filter_settings_gui(chatter.sel_filter, chatter.chorus_filter, chatter.distortion_filter, chatter.echo_filter, chatter.highpass_filter, chatter.lowpass_filter, chatter.reverb_filter, chatter.reverb_preset_index);
 
             GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
 
@@ -116,10 +106,7 @@ namespace Chatterer
 
             if (source != null)
             {
-
-                string[] filters = { "Chorus", "Dist", "Echo", "HiPass", "LoPass", "Reverb" };
-
-                source.sel_filter = GUILayout.SelectionGrid(source.sel_filter, filters, 3, GUILayout.ExpandWidth(true));
+                source.sel_filter = GUILayout.SelectionGrid(source.sel_filter, FILTERS, 3, GUILayout.ExpandWidth(true));
 
                 source.reverb_preset_index = combined_filter_settings_gui(source.sel_filter, source.chorus_filter, source.distortion_filter, source.echo_filter, source.highpass_filter, source.lowpass_filter, source.reverb_filter, source.reverb_preset_index);
 
@@ -792,63 +779,63 @@ namespace Chatterer
 
             _filter = new ConfigNode();
             _filter.name = "CHORUS";
-            _filter.AddValue("enabled", chatter_chorus_filter.enabled);
-            _filter.AddValue("dry_mix", chatter_chorus_filter.dryMix);
-            _filter.AddValue("wet_mix_1", chatter_chorus_filter.wetMix1);
-            _filter.AddValue("wet_mix_2", chatter_chorus_filter.wetMix2);
-            _filter.AddValue("wet_mix_3", chatter_chorus_filter.wetMix3);
-            _filter.AddValue("delay", chatter_chorus_filter.delay);
-            _filter.AddValue("rate", chatter_chorus_filter.rate);
-            _filter.AddValue("depth", chatter_chorus_filter.depth);
+            _filter.AddValue("enabled", chatter.chorus_filter.enabled);
+            _filter.AddValue("dry_mix", chatter.chorus_filter.dryMix);
+            _filter.AddValue("wet_mix_1", chatter.chorus_filter.wetMix1);
+            _filter.AddValue("wet_mix_2", chatter.chorus_filter.wetMix2);
+            _filter.AddValue("wet_mix_3", chatter.chorus_filter.wetMix3);
+            _filter.AddValue("delay", chatter.chorus_filter.delay);
+            _filter.AddValue("rate", chatter.chorus_filter.rate);
+            _filter.AddValue("depth", chatter.chorus_filter.depth);
             filters_clipboard.AddNode(_filter);
 
             _filter = new ConfigNode();
             _filter.name = "DISTORTION";
-            _filter.AddValue("enabled", chatter_distortion_filter.enabled);
-            _filter.AddValue("distortion_level", chatter_distortion_filter.distortionLevel);
+            _filter.AddValue("enabled", chatter.distortion_filter.enabled);
+            _filter.AddValue("distortion_level", chatter.distortion_filter.distortionLevel);
             filters_clipboard.AddNode(_filter);
 
             _filter = new ConfigNode();
             _filter.name = "ECHO";
-            _filter.AddValue("enabled", chatter_echo_filter.enabled);
-            _filter.AddValue("delay", chatter_echo_filter.delay);
-            _filter.AddValue("decay_ratio", chatter_echo_filter.decayRatio);
-            _filter.AddValue("dry_mix", chatter_echo_filter.dryMix);
-            _filter.AddValue("wet_mix", chatter_echo_filter.wetMix);
+            _filter.AddValue("enabled", chatter.echo_filter.enabled);
+            _filter.AddValue("delay", chatter.echo_filter.delay);
+            _filter.AddValue("decay_ratio", chatter.echo_filter.decayRatio);
+            _filter.AddValue("dry_mix", chatter.echo_filter.dryMix);
+            _filter.AddValue("wet_mix", chatter.echo_filter.wetMix);
             filters_clipboard.AddNode(_filter);
 
             _filter = new ConfigNode();
             _filter.name = "HIGHPASS";
-            _filter.AddValue("enabled", chatter_highpass_filter.enabled);
-            _filter.AddValue("cutoff_freq", chatter_highpass_filter.cutoffFrequency);
-            _filter.AddValue("resonance_q", chatter_highpass_filter.highpassResonanceQ);
+            _filter.AddValue("enabled", chatter.highpass_filter.enabled);
+            _filter.AddValue("cutoff_freq", chatter.highpass_filter.cutoffFrequency);
+            _filter.AddValue("resonance_q", chatter.highpass_filter.highpassResonanceQ);
             filters_clipboard.AddNode(_filter);
 
             _filter = new ConfigNode();
             _filter.name = "LOWPASS";
-            _filter.AddValue("enabled", chatter_lowpass_filter.enabled);
-            _filter.AddValue("cutoff_freq", chatter_lowpass_filter.cutoffFrequency);
-            _filter.AddValue("resonance_q", chatter_lowpass_filter.lowpassResonanceQ);
+            _filter.AddValue("enabled", chatter.lowpass_filter.enabled);
+            _filter.AddValue("cutoff_freq", chatter.lowpass_filter.cutoffFrequency);
+            _filter.AddValue("resonance_q", chatter.lowpass_filter.lowpassResonanceQ);
             filters_clipboard.AddNode(_filter);
 
             _filter = new ConfigNode();
             _filter.name = "REVERB";
-            _filter.AddValue("enabled", chatter_reverb_filter.enabled);
-            _filter.AddValue("reverb_preset", chatter_reverb_filter.reverbPreset);
-            _filter.AddValue("dry_level", chatter_reverb_filter.dryLevel);
-            _filter.AddValue("room", chatter_reverb_filter.room);
-            _filter.AddValue("room_hf", chatter_reverb_filter.roomHF);
-            _filter.AddValue("room_lf", chatter_reverb_filter.roomLF);
-            _filter.AddValue("decay_time", chatter_reverb_filter.decayTime);
-            _filter.AddValue("decay_hf_ratio", chatter_reverb_filter.decayHFRatio);
-            _filter.AddValue("reflections_level", chatter_reverb_filter.reflectionsLevel);
-            _filter.AddValue("reflections_delay", chatter_reverb_filter.reflectionsDelay);
-            _filter.AddValue("reverb_level", chatter_reverb_filter.reverbLevel);
-            _filter.AddValue("reverb_delay", chatter_reverb_filter.reverbDelay);
-            _filter.AddValue("diffusion", chatter_reverb_filter.diffusion);
-            _filter.AddValue("density", chatter_reverb_filter.density);
-            _filter.AddValue("hf_reference", chatter_reverb_filter.hfReference);
-            _filter.AddValue("lf_reference", chatter_reverb_filter.lfReference);
+            _filter.AddValue("enabled", chatter.reverb_filter.enabled);
+            _filter.AddValue("reverb_preset", chatter.reverb_filter.reverbPreset);
+            _filter.AddValue("dry_level", chatter.reverb_filter.dryLevel);
+            _filter.AddValue("room", chatter.reverb_filter.room);
+            _filter.AddValue("room_hf", chatter.reverb_filter.roomHF);
+            _filter.AddValue("room_lf", chatter.reverb_filter.roomLF);
+            _filter.AddValue("decay_time", chatter.reverb_filter.decayTime);
+            _filter.AddValue("decay_hf_ratio", chatter.reverb_filter.decayHFRatio);
+            _filter.AddValue("reflections_level", chatter.reverb_filter.reflectionsLevel);
+            _filter.AddValue("reflections_delay", chatter.reverb_filter.reflectionsDelay);
+            _filter.AddValue("reverb_level", chatter.reverb_filter.reverbLevel);
+            _filter.AddValue("reverb_delay", chatter.reverb_filter.reverbDelay);
+            _filter.AddValue("diffusion", chatter.reverb_filter.diffusion);
+            _filter.AddValue("density", chatter.reverb_filter.density);
+            _filter.AddValue("hf_reference", chatter.reverb_filter.hfReference);
+            _filter.AddValue("lf_reference", chatter.reverb_filter.lfReference);
             filters_clipboard.AddNode(_filter);
 
             Log.dbg("all chatter filter values copied to filters_clipboard");
@@ -859,53 +846,53 @@ namespace Chatterer
             ConfigNode filter = new ConfigNode();
 
             filter = filters_clipboard.GetNode("CHORUS");
-            if (filter.HasValue("enabled")) chatter_chorus_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("dry_mix")) chatter_chorus_filter.dryMix = Single.Parse(filter.GetValue("dry_mix"));
-            if (filter.HasValue("wet_mix_1")) chatter_chorus_filter.wetMix1 = Single.Parse(filter.GetValue("wet_mix_1"));
-            if (filter.HasValue("wet_mix_2")) chatter_chorus_filter.wetMix2 = Single.Parse(filter.GetValue("wet_mix_2"));
-            if (filter.HasValue("wet_mix_3")) chatter_chorus_filter.wetMix3 = Single.Parse(filter.GetValue("wet_mix_3"));
-            if (filter.HasValue("delay")) chatter_chorus_filter.delay = Single.Parse(filter.GetValue("delay"));
-            if (filter.HasValue("rate")) chatter_chorus_filter.rate = Single.Parse(filter.GetValue("rate"));
-            if (filter.HasValue("depth")) chatter_chorus_filter.depth = Single.Parse(filter.GetValue("depth"));
+            if (filter.HasValue("enabled")) chatter.chorus_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("dry_mix")) chatter.chorus_filter.dryMix = Single.Parse(filter.GetValue("dry_mix"));
+            if (filter.HasValue("wet_mix_1")) chatter.chorus_filter.wetMix1 = Single.Parse(filter.GetValue("wet_mix_1"));
+            if (filter.HasValue("wet_mix_2")) chatter.chorus_filter.wetMix2 = Single.Parse(filter.GetValue("wet_mix_2"));
+            if (filter.HasValue("wet_mix_3")) chatter.chorus_filter.wetMix3 = Single.Parse(filter.GetValue("wet_mix_3"));
+            if (filter.HasValue("delay")) chatter.chorus_filter.delay = Single.Parse(filter.GetValue("delay"));
+            if (filter.HasValue("rate")) chatter.chorus_filter.rate = Single.Parse(filter.GetValue("rate"));
+            if (filter.HasValue("depth")) chatter.chorus_filter.depth = Single.Parse(filter.GetValue("depth"));
 
             filter = filters_clipboard.GetNode("DISTORTION");
-            if (filter.HasValue("enabled")) chatter_distortion_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("distortion_level")) chatter_distortion_filter.distortionLevel = Single.Parse(filter.GetValue("distortion_level"));
+            if (filter.HasValue("enabled")) chatter.distortion_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("distortion_level")) chatter.distortion_filter.distortionLevel = Single.Parse(filter.GetValue("distortion_level"));
 
             filter = filters_clipboard.GetNode("ECHO");
-            if (filter.HasValue("enabled")) chatter_echo_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("delay")) chatter_echo_filter.delay = Single.Parse(filter.GetValue("delay"));
-            if (filter.HasValue("decay_ratio")) chatter_echo_filter.decayRatio = Single.Parse(filter.GetValue("decay_ratio"));
-            if (filter.HasValue("dry_mix")) chatter_echo_filter.dryMix = Single.Parse(filter.GetValue("dry_mix"));
-            if (filter.HasValue("wet_mix")) chatter_echo_filter.wetMix = Single.Parse(filter.GetValue("wet_mix"));
+            if (filter.HasValue("enabled")) chatter.echo_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("delay")) chatter.echo_filter.delay = Single.Parse(filter.GetValue("delay"));
+            if (filter.HasValue("decay_ratio")) chatter.echo_filter.decayRatio = Single.Parse(filter.GetValue("decay_ratio"));
+            if (filter.HasValue("dry_mix")) chatter.echo_filter.dryMix = Single.Parse(filter.GetValue("dry_mix"));
+            if (filter.HasValue("wet_mix")) chatter.echo_filter.wetMix = Single.Parse(filter.GetValue("wet_mix"));
 
             filter = filters_clipboard.GetNode("HIGHPASS");
-            if (filter.HasValue("enabled")) chatter_highpass_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("cutoff_freq")) chatter_highpass_filter.cutoffFrequency = Single.Parse(filter.GetValue("cutoff_freq"));
-            if (filter.HasValue("resonance_q")) chatter_highpass_filter.highpassResonanceQ = Single.Parse(filter.GetValue("resonance_q"));
+            if (filter.HasValue("enabled")) chatter.highpass_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("cutoff_freq")) chatter.highpass_filter.cutoffFrequency = Single.Parse(filter.GetValue("cutoff_freq"));
+            if (filter.HasValue("resonance_q")) chatter.highpass_filter.highpassResonanceQ = Single.Parse(filter.GetValue("resonance_q"));
 
             filter = filters_clipboard.GetNode("LOWPASS");
-            if (filter.HasValue("enabled")) chatter_lowpass_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("cutoff_freq")) chatter_lowpass_filter.cutoffFrequency = Single.Parse(filter.GetValue("cutoff_freq"));
-            if (filter.HasValue("resonance_q")) chatter_lowpass_filter.lowpassResonanceQ = Single.Parse(filter.GetValue("resonance_q"));
+            if (filter.HasValue("enabled")) chatter.lowpass_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("cutoff_freq")) chatter.lowpass_filter.cutoffFrequency = Single.Parse(filter.GetValue("cutoff_freq"));
+            if (filter.HasValue("resonance_q")) chatter.lowpass_filter.lowpassResonanceQ = Single.Parse(filter.GetValue("resonance_q"));
 
             filter = filters_clipboard.GetNode("REVERB");
-            if (filter.HasValue("enabled")) chatter_reverb_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
-            if (filter.HasValue("reverb_preset")) chatter_reverb_filter.reverbPreset = (AudioReverbPreset)Enum.Parse(typeof(AudioReverbPreset), filter.GetValue("reverb_preset"));
-            if (filter.HasValue("dry_level")) chatter_reverb_filter.dryLevel = Single.Parse(filter.GetValue("dry_level"));
-            if (filter.HasValue("room")) chatter_reverb_filter.room = Single.Parse(filter.GetValue("room"));
-            if (filter.HasValue("room_hf")) chatter_reverb_filter.roomHF = Single.Parse(filter.GetValue("room_hf"));
-            if (filter.HasValue("room_lf")) chatter_reverb_filter.roomLF = Single.Parse(filter.GetValue("room_lf"));
-            if (filter.HasValue("decay_time")) chatter_reverb_filter.decayTime = Single.Parse(filter.GetValue("decay_time"));
-            if (filter.HasValue("decay_hf_ratio")) chatter_reverb_filter.decayHFRatio = Single.Parse(filter.GetValue("decay_hf_ratio"));
-            if (filter.HasValue("reflections_level")) chatter_reverb_filter.reflectionsLevel = Single.Parse(filter.GetValue("reflections_level"));
-            if (filter.HasValue("reflections_delay")) chatter_reverb_filter.reflectionsDelay = Single.Parse(filter.GetValue("reflections_delay"));
-            if (filter.HasValue("reverb_level")) chatter_reverb_filter.reverbLevel = Single.Parse(filter.GetValue("reverb_level"));
-            if (filter.HasValue("reverb_delay")) chatter_reverb_filter.reverbDelay = Single.Parse(filter.GetValue("reverb_delay"));
-            if (filter.HasValue("diffusion")) chatter_reverb_filter.diffusion = Single.Parse(filter.GetValue("diffusion"));
-            if (filter.HasValue("density")) chatter_reverb_filter.density = Single.Parse(filter.GetValue("density"));
-            if (filter.HasValue("hf_reference")) chatter_reverb_filter.hfReference = Single.Parse(filter.GetValue("hf_reference"));
-            if (filter.HasValue("lf_reference")) chatter_reverb_filter.lfReference = Single.Parse(filter.GetValue("lf_reference"));
+            if (filter.HasValue("enabled")) chatter.reverb_filter.enabled = Boolean.Parse(filter.GetValue("enabled"));
+            if (filter.HasValue("reverb_preset")) chatter.reverb_filter.reverbPreset = (AudioReverbPreset)Enum.Parse(typeof(AudioReverbPreset), filter.GetValue("reverb_preset"));
+            if (filter.HasValue("dry_level")) chatter.reverb_filter.dryLevel = Single.Parse(filter.GetValue("dry_level"));
+            if (filter.HasValue("room")) chatter.reverb_filter.room = Single.Parse(filter.GetValue("room"));
+            if (filter.HasValue("room_hf")) chatter.reverb_filter.roomHF = Single.Parse(filter.GetValue("room_hf"));
+            if (filter.HasValue("room_lf")) chatter.reverb_filter.roomLF = Single.Parse(filter.GetValue("room_lf"));
+            if (filter.HasValue("decay_time")) chatter.reverb_filter.decayTime = Single.Parse(filter.GetValue("decay_time"));
+            if (filter.HasValue("decay_hf_ratio")) chatter.reverb_filter.decayHFRatio = Single.Parse(filter.GetValue("decay_hf_ratio"));
+            if (filter.HasValue("reflections_level")) chatter.reverb_filter.reflectionsLevel = Single.Parse(filter.GetValue("reflections_level"));
+            if (filter.HasValue("reflections_delay")) chatter.reverb_filter.reflectionsDelay = Single.Parse(filter.GetValue("reflections_delay"));
+            if (filter.HasValue("reverb_level")) chatter.reverb_filter.reverbLevel = Single.Parse(filter.GetValue("reverb_level"));
+            if (filter.HasValue("reverb_delay")) chatter.reverb_filter.reverbDelay = Single.Parse(filter.GetValue("reverb_delay"));
+            if (filter.HasValue("diffusion")) chatter.reverb_filter.diffusion = Single.Parse(filter.GetValue("diffusion"));
+            if (filter.HasValue("density")) chatter.reverb_filter.density = Single.Parse(filter.GetValue("density"));
+            if (filter.HasValue("hf_reference")) chatter.reverb_filter.hfReference = Single.Parse(filter.GetValue("hf_reference"));
+            if (filter.HasValue("lf_reference")) chatter.reverb_filter.lfReference = Single.Parse(filter.GetValue("lf_reference"));
 
             Log.dbg("all chatter filter values pasted from filters_clipboard");
         }
