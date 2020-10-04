@@ -285,12 +285,12 @@ namespace Chatterer
             if (aae_airlock_exist) node.SetValue("aae_airlock_vol", aae_airlock.volume, true);
 
             //Chatter sets
-            foreach (ChatterAudioList chatter_set in chatter_array) // FIXME: eh aqui que tah dando merda no audioset.
+            foreach (ChatterAudioList chatter_set in chatter_array)
             {
                 ConfigNode _set = new ConfigNode();
                 _set.AddValue("directory", chatter_set.directory);
                 _set.AddValue("is_active", chatter_set.is_active);
-                node.SetNode("AUDIOSET", _set, true);
+                node.AddNode("AUDIOSET", _set);
             }
 
             save_shared_settings_filters(node, chatter);
