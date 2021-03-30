@@ -1,7 +1,7 @@
 source ../CONFIG.inc
 
-PACKAGE="Chatterer"
-TARGETDIR="$PACKAGE/"
+PACKAGE=Chatterer
+TARGETDIR="net.lisias.ksp/$PACKAGE"
 TARGETBINDIR="$TARGETDIR"
 PROJECTSDIR="$PACKAGE/"
 
