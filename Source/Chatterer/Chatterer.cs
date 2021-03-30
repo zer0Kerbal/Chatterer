@@ -385,7 +385,7 @@ namespace Chatterer
                 Log.dbg("blizzy78's Toolbar plugin found ! Set toolbar button.");
 
                 chatterer_toolbar_button = ToolbarManager.Instance.add("Chatterer", "UI");
-                chatterer_toolbar_button.TexturePath = KSPe.IO.File<Startup>.Asset.Solve("Textures", "chatterer_icon_toolbar");
+                chatterer_toolbar_button.TexturePath = File.Asset.Solve("Textures", "chatterer_icon_toolbar");
                 chatterer_toolbar_button.ToolTip = "Open/Close Chatterer UI";
                 chatterer_toolbar_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
                 chatterer_toolbar_button.OnClick += ((e) =>
@@ -2461,7 +2461,8 @@ namespace Chatterer
                         {
                             //GameDatabase won't load MP3
                             //try old method
-                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/beeps/" + short_file_name + ".mp3";
+                            //string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/beeps/" + short_file_name + ".mp3";
+                            string mp3_path = "file://" + File.Asset.Solve("Sounds", "beeps", short_file_name + ".mp3");
                             //WWW www_chatter = new WWW(mp3_path);
                             //if (www_chatter != null)
                             //{
@@ -2520,7 +2521,8 @@ namespace Chatterer
                         {
                             //GameDatabase won't load MP3
                             //try old method
-                            string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/sstv/" + short_file_name + ".mp3";
+                            //string mp3_path = "file://" + AssemblyLoader.loadedAssemblies.GetPathByType(typeof(chatterer)) + "/Sounds/sstv/" + short_file_name + ".mp3";
+                            string mp3_path = "file://" + File.Asset.Solve("Sounds", "sstv", short_file_name + ".mp3");
                             //WWW www_chatter = new WWW(mp3_path);
                             //if (www_chatter != null)
                             //{
