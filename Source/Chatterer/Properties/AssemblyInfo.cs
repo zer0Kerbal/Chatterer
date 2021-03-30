@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Chatterer /L Unofficial")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Add some SSTV, beeps, and nonsensical radio chatter between your crewed command pods and Mission Control")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Chatterer")]
-[assembly: AssemblyCopyright("Copyright © 2020 LisiasT")]
+[assembly: AssemblyCopyright("© 2020-2021 LisiasT")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
