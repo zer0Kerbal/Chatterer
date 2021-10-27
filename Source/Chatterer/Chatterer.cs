@@ -54,6 +54,10 @@ using System.IO;
 using UnityEngine;
 using KSP.UI.Screens;
 
+using GUI = KSPe.UI.GUI;
+using GUILayout = KSPe.UI.GUILayout;
+using Toolbar = KSPe.UI.Toolbar;
+
 using Asset = KSPe.IO.Asset<Chatterer.Startup>;
 using GDBAsset = KSPe.GameDB.Asset<Chatterer.Startup>;
 using File = KSPe.IO.File<Chatterer.Startup>;
@@ -240,7 +244,7 @@ namespace Chatterer
         private int prev_num_pages;
 
         //integration with blizzy78's Toolbar plugin
-        private IButton chatterer_toolbar_button;
+        private Toolbar.Button chatterer_toolbar_button;
         private bool useBlizzy78Toolbar = false;
 
         //KSP Stock application launcherButton
@@ -371,64 +375,18 @@ namespace Chatterer
 
         static readonly string[] AUDIO_FILE_EXTS = { "*.wav", "*.ogg", "*.aif", "*.aiff" };
 
-        //////////////////////////////////////////////////
-        //////////////////////////////////////////////////
+		//////////////////////////////////////////////////
+		//////////////////////////////////////////////////
 
-        //GUI
+		//GUI
 
-        //integration with blizzy78's Toolbar plugin
-        
-        internal chatterer()
-        {
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                Log.dbg("blizzy78's Toolbar plugin found ! Set toolbar button.");
+		//integration with blizzy78's Toolbar plugin
 
-                chatterer_toolbar_button = ToolbarManager.Instance.add("Chatterer", "UI");
-                chatterer_toolbar_button.TexturePath = File.Asset.Solve("Textures", "chatterer_icon_toolbar");
-                chatterer_toolbar_button.ToolTip = "Open/Close Chatterer UI";
-                chatterer_toolbar_button.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-                chatterer_toolbar_button.OnClick += ((e) =>
-                {
-                    Log.dbg("Toolbar UI button clicked, when hide_all_windows = {0}", hide_all_windows);
+		internal chatterer()
+		{
+		}
 
-                    if (launcherButton == null && ToolbarManager.ToolbarAvailable)
-                    {
-                        UIToggle();
-                    }
-                    else if (launcherButton != null)
-                    {
-                        if (hide_all_windows)
-                        {
-                            launcherButton.SetTrue();
-                            Log.dbg("Blizzy78's Toolbar UI button clicked, launcherButton.State = {0}", launcherButton.toggleButton.CurrentState);
-                        }
-                        else if (!hide_all_windows)
-                        {
-                            launcherButton.SetFalse();
-                            Log.dbg("Blizzy78's Toolbar UI button clicked, saving settings... & launcherButton.State = {0}", launcherButton.toggleButton.CurrentState);
-                        }
-                    }
-                });
-            }
-        }
-
-        private void OnGUIApplicationLauncherReady()
-        {
-            // Create the button in the KSP AppLauncher
-            if (launcherButton == null && !useBlizzy78Toolbar)
-            {
-                Log.dbg("Building ApplicationLauncherButton");
-                                
-                launcherButton = ApplicationLauncher.Instance.AddModApplication(UIToggle, UIToggle,
-                                                                            null, null,
-                                                                            null, null,
-                                                                            ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW,
-                                                                            chatterer_button_idle);
-            }
-        }
-
-        private void launcherButtonTexture_check()
+		private void launcherButtonTexture_check()
         {
         // launcherButton texture change check
              
@@ -499,23 +457,6 @@ namespace Chatterer
             }
         }
 
-        public void launcherButtonRemove()
-        {
-            if (launcherButton != null)
-            {
-                ApplicationLauncher.Instance.RemoveModApplication(launcherButton);
-
-                Log.dbg("launcherButtonRemove");
-            }
-
-            else Log.dbg("launcherButtonRemove (useless attempt)");
-        }
-
-        public void OnSceneChangeRequest(GameScenes _scene)
-        {
-            launcherButtonRemove();
-        }
-        
         void OnCrewOnEVA(GameEvents.FromToAction<Part, Part> data)
         {
             if (aae_airlock_exist)
@@ -695,17 +636,9 @@ namespace Chatterer
         {
             Log.dbg("OnDestroy() START");
 
-            // Remove the button from the Blizzy's toolbar
-            if (chatterer_toolbar_button != null)
-            {
-                chatterer_toolbar_button.Destroy();
-
-                Log.dbg("OnDestroy() Blizzy78's toolbar button removed");
-            }
+            ToolbarController.Instance.Destroy();
 
             // Un-register the callbacks
-            GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIApplicationLauncherReady);
-            GameEvents.onGameSceneLoadRequested.Remove(OnSceneChangeRequest);
             GameEvents.onCrewOnEva.Remove(OnCrewOnEVA);
             GameEvents.onCrewBoardVessel.Remove(OnCrewBoard);
             GameEvents.onVesselChange.Remove(OnVesselChange);
@@ -718,9 +651,6 @@ namespace Chatterer
             GameEvents.CommNet.OnCommHomeStatusChange.Remove(OnCommHomeStatusChange);
             GameEvents.onGamePause.Remove(OnGamePause);
             GameEvents.onGameUnpause.Remove(OnGameUnpause);
-
-            // Remove the button from the KSP AppLauncher
-            launcherButtonRemove();
 
             // Stop coroutine n' Exchange
             StopAllCoroutines();
@@ -938,19 +868,10 @@ namespace Chatterer
             }
 
             string closeUI = "Close";
-            if (GUILayout.Button(closeUI, GUILayout.ExpandWidth(false)))
-            {
-                if (launcherButton == null && ToolbarManager.ToolbarAvailable)
-                {
-                    UIToggle();
-                }
-                else if (launcherButton != null)
-                {
-                    launcherButton.SetFalse();
-                }
-            }
-            
-            GUILayout.EndHorizontal();
+			if (GUILayout.Button(closeUI, GUILayout.ExpandWidth(false)))
+				UIToggle();
+
+			GUILayout.EndHorizontal();
 
             //Separator
             GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
@@ -1710,14 +1631,12 @@ namespace Chatterer
                 prev_use_vessel_settings = use_vessel_settings;
             }
 
-            if (ToolbarManager.ToolbarAvailable)
             {
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
                 _content.text = "Use Blizzy78's toolbar only";
                 _content.tooltip = "Hide stock Applaunch button";
                 useBlizzy78Toolbar = GUILayout.Toggle(useBlizzy78Toolbar, _content);
-                if (useBlizzy78Toolbar && launcherButton != null) launcherButtonRemove();
-                if (!useBlizzy78Toolbar && launcherButton == null) OnGUIApplicationLauncherReady();
+                ToolbarController.Instance.ButtonsActive(!this.useBlizzy78Toolbar, this.useBlizzy78Toolbar);
                 GUILayout.EndHorizontal();
             }
 
@@ -3438,10 +3357,6 @@ namespace Chatterer
 
             // Setup & callbacks
             //
-            
-            //for KSP Application Launcher
-            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIApplicationLauncherReady);
-            GameEvents.onGameSceneLoadRequested.Add(OnSceneChangeRequest);
 
             //to trigger Chatter
             GameEvents.onCrewOnEva.Add(OnCrewOnEVA);
@@ -3467,10 +3382,15 @@ namespace Chatterer
 
         private void Start()
         {
-            if (launcherButton == null)
-            {
-                OnGUIApplicationLauncherReady();
-            }
+			Texture2D chatterer_icon_toolbar = Asset.Texture2D.LoadFromFile("Textures", "chatterer_icon_toolbar");
+			chatterer_toolbar_button = Toolbar.Button.Create(this
+					, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW
+					, chatterer_button_idle, chatterer_icon_toolbar
+					, "Open/Close Chatterer UI"
+				);
+			chatterer_toolbar_button.Toolbar.Add(Toolbar.Button.ToolbarEvents.Kind.Active, new Toolbar.Button.Event(this.UIToggle, this.UIToggle));
+			ToolbarController.Instance.ButtonsActive(!this.useBlizzy78Toolbar, this.useBlizzy78Toolbar);
+			ToolbarController.Instance.Add(chatterer_toolbar_button);
 
             Log.dbg("Starting an exchange : Hello !");
             begin_exchange(0); // Trigger an exchange on Start to say hello
