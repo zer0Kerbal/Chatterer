@@ -72,20 +72,23 @@ namespace Chatterer
                     if (initial_chatter_set.Count > 0)
                     {
                         if (quindar_toggle)
-                        {
-                            initial_chatter.Play();
-                            Log.dbg("playing initial chatter");
-                            yield return new WaitForSeconds(initial_chatter.clip.length);
+						{
+							initial_chatter.PlayOneShot(quindar_intro.clip); // Workaround [playing quindar with quindar.audiosource is BROKEN : hangs exchange since KSP v1.4.0 for some weird reasons]
+							Log.dbg("playingOneShot initial quindar");
+							yield return new WaitForSeconds(quindar_intro.clip.length);
 
-                            initial_chatter.PlayOneShot(quindar1.clip); // Workaround [playing quindar with quindar.audiosource is BROKEN : hangs exchange since KSP v1.4.0 for some weird reasons]
-                            Log.dbg("playingOneShot initial quindar");
-                            yield return new WaitForSeconds(quindar1.clip.length);
+							initial_chatter.Play();
+							Log.dbg("playing initial chatter");
+							yield return new WaitForSeconds(initial_chatter.clip.length);
 
-                            //initial chatter has finished playing
+							initial_chatter.PlayOneShot(quindar_outro.clip); // Workaround [playing quindar with quindar.audiosource is BROKEN : hangs exchange since KSP v1.4.0 for some weird reasons]
+							Log.dbg("playingOneShot outro quindar");
+							yield return new WaitForSeconds(quindar_outro.clip.length);
 
-                        }
-                        else                  // play without quindar
-                        {
+							//initial chatter has finished playing
+						}
+						else                  // play without quindar
+						{
                             initial_chatter.Play();
                             Log.dbg("playing initial chatter");
                             yield return new WaitForSeconds(initial_chatter.clip.length);
@@ -125,9 +128,9 @@ namespace Chatterer
                         Log.dbg("playing response chatter");
                         yield return new WaitForSeconds(response_chatter.clip.length);
 
-                        response_chatter.PlayOneShot(quindar2.clip); // Workaround [playing quindar with quindar.audiosource is BROKEN : hangs exchange since KSP v1.4.0 for some weird reasons]
+                        response_chatter.PlayOneShot(quindar_outro.clip); // Workaround [playing quindar with quindar.audiosource is BROKEN : hangs exchange since KSP v1.4.0 for some weird reasons]
                         Log.dbg("playingOneShot response quindar");
-                        yield return new WaitForSeconds(quindar2.clip.length);
+                        yield return new WaitForSeconds(quindar_outro.clip.length);
 
                         //response chatter has finished playing
 

@@ -187,8 +187,8 @@ namespace Chatterer
         //Chatter AudioSources
         private AudioSource initial_chatter = new AudioSource();
         private AudioSource response_chatter = new AudioSource();
-        private AudioSource quindar1 = new AudioSource();
-        private AudioSource quindar2 = new AudioSource();
+        private AudioSource quindar_intro = new AudioSource();
+        private AudioSource quindar_outro = new AudioSource();
         //private AudioSource musik = new AudioSource();
 
         //SSTV AudioSources
@@ -216,8 +216,8 @@ namespace Chatterer
         private int current_capsule_clip;
         private int current_capsuleF_clip;
 
-        private AudioClip quindar_01_clip;
-        private AudioClip quindar_02_clip;
+        private AudioClip quindar_intro_clip;
+        private AudioClip quindar_outro_clip;
         private AudioClip voidnoise_clip;
 
         //Chatter variables
@@ -955,8 +955,8 @@ namespace Chatterer
             if (quindar_vol_slider != prev_quindar_vol_slider)
             {
                 Log.dbg("Quindar volume has been changed...");
-                quindar1.volume = quindar_vol_slider;
-                quindar2.volume = quindar_vol_slider;
+                quindar_intro.volume = quindar_vol_slider;
+                quindar_outro.volume = quindar_vol_slider;
                 prev_quindar_vol_slider = quindar_vol_slider;
             }
 
@@ -2264,100 +2264,88 @@ namespace Chatterer
                 }
             }
         }
-                
-        ////determine whether the vessel has a part with ModuleRemoteTechSPU and load all relevant RemoteTech variables for the vessel
-        //public void updateRemoteTechData()
-        //{
-        //    if (RT2Hook.Instance != null)
-        //    {
-        //        if (hasRemoteTech == false) hasRemoteTech = true;
 
-        //        //if (RT2Hook.Instance.HasAnyConnection(vessel.id))
-        //        //{
-        //        //    shortestcontrolDelay = RT2Hook.Instance.GetShortestSignalDelay(vessel.id);
+		////determine whether the vessel has a part with ModuleRemoteTechSPU and load all relevant RemoteTech variables for the vessel
+		//public void updateRemoteTechData()
+		//{
+		//    if (RT2Hook.Instance != null)
+		//    {
+		//        if (hasRemoteTech == false) hasRemoteTech = true;
 
-        //        //    if (inSatteliteRadioContact == false)
-        //        //    {
-        //        //        inSatteliteRadioContact = !inSatteliteRadioContact;
+		//        //if (RT2Hook.Instance.HasAnyConnection(vessel.id))
+		//        //{
+		//        //    shortestcontrolDelay = RT2Hook.Instance.GetShortestSignalDelay(vessel.id);
 
-        //        //        Log.dbg("Sattelite contact ! Signal delay =" + Convert.ToSingle(shortestcontrolDelay));
-        //        //    }
-        //        //}
-        //        //else if (!RT2Hook.Instance.HasAnyConnection(vessel.id))
-        //        //{
-        //        //    if (inSatteliteRadioContact == true)
-        //        //    {
-        //        //        inSatteliteRadioContact = !inSatteliteRadioContact;
+		//        //    if (inSatteliteRadioContact == false)
+		//        //    {
+		//        //        inSatteliteRadioContact = !inSatteliteRadioContact;
 
-        //        //        shortestcontrolDelay = 0;
-        //        //        Log.dbg("No Sattelite contact ! Satt delay set to =" + Convert.ToSingle(shortestcontrolDelay));
-        //        //    }
-        //        //}
+		//        //        Log.dbg("Sattelite contact ! Signal delay =" + Convert.ToSingle(shortestcontrolDelay));
+		//        //    }
+		//        //}
+		//        //else if (!RT2Hook.Instance.HasAnyConnection(vessel.id))
+		//        //{
+		//        //    if (inSatteliteRadioContact == true)
+		//        //    {
+		//        //        inSatteliteRadioContact = !inSatteliteRadioContact;
 
-        //        if (RT2Hook.Instance.HasConnectionToKSC(vessel.id))
-        //        {
-        //            controlDelay = RT2Hook.Instance.GetSignalDelayToKSC(vessel.id);
+		//        //        shortestcontrolDelay = 0;
+		//        //        Log.dbg("No Sattelite contact ! Satt delay set to =" + Convert.ToSingle(shortestcontrolDelay));
+		//        //    }
+		//        //}
 
-        //            if (inRadioContact == false)
-        //            {
-        //                inRadioContact = !inRadioContact;
+		//        if (RT2Hook.Instance.HasConnectionToKSC(vessel.id))
+		//        {
+		//            controlDelay = RT2Hook.Instance.GetSignalDelayToKSC(vessel.id);
 
-        //                Log.dbg("Online ! Signal delay =" + Convert.ToSingle(controlDelay));
-        //            }
-        //        }
-        //        else if (!RT2Hook.Instance.HasConnectionToKSC(vessel.id))
-        //        {
-        //            if (inRadioContact == true)
-        //            {
-        //                inRadioContact = !inRadioContact;
+		//            if (inRadioContact == false)
+		//            {
+		//                inRadioContact = !inRadioContact;
 
-        //                controlDelay = 0;
-        //                Log.dbg("Offline ! Delay set to =" + Convert.ToSingle(controlDelay));
+		//                Log.dbg("Online ! Signal delay =" + Convert.ToSingle(controlDelay));
+		//            }
+		//        }
+		//        else if (!RT2Hook.Instance.HasConnectionToKSC(vessel.id))
+		//        {
+		//            if (inRadioContact == true)
+		//            {
+		//                inRadioContact = !inRadioContact;
 
-        //                if (response_chatter.isPlaying == true) response_chatter.Stop();
-        //                if (sstv.isPlaying == true) sstv.Stop();
-        //            }
-        //        }
-        //    }
-        //    else if (hasRemoteTech == true) hasRemoteTech = false;
-        //}
+		//                controlDelay = 0;
+		//                Log.dbg("Offline ! Delay set to =" + Convert.ToSingle(controlDelay));
 
-        //Load audio functions
-        private void load_quindar_audio()
-        {
-            //Create two AudioSources for quindar so PlayDelayed() can delay both beeps
-            Log.dbg("loading quindar_01 clip");
-            string path1 = GDBAsset.Solve("Sounds", "chatter", "quindar_01");
+		//                if (response_chatter.isPlaying == true) response_chatter.Stop();
+		//                if (sstv.isPlaying == true) sstv.Stop();
+		//            }
+		//        }
+		//    }
+		//    else if (hasRemoteTech == true) hasRemoteTech = false;
+		//}
 
-            if (GameDatabase.Instance.ExistsAudioClip(path1))
-            {
-                quindar_01_clip = GameDatabase.Instance.GetAudioClip(path1);
-                Log.dbg("quindar_01 clip loaded");
-            }
-            else Log.warn("quindar_01 audio file missing!");
+		private AudioClip load_audio_clip(string where, string what)
+		{
+			AudioClip r = null;
+			Log.trace("loading {0}/{1} clip", where, what);
+			string path = GDBAsset.Solve("Sounds", where, what);
+			if (GameDatabase.Instance.ExistsAudioClip(path))
+			{
+				r = GameDatabase.Instance.GetAudioClip(path);
+				Log.trace("quindar_intro clip loaded");
+			}
+			else Log.warn("quindar_intro audio file missing!");
+			return r;
+		}
 
-            Log.dbg("loading quindar_02 clip");
-            string path2 = GDBAsset.Solve("Sounds", "chatter", "quindar_02");
+		//Load audio functions
+		private void load_quindar_audio()
+		{
+			//Create two AudioSources for quindar so PlayDelayed() can delay both beeps
+			quindar_intro_clip = this.load_audio_clip("chatter", "quindar_intro");
+			quindar_outro_clip = this.load_audio_clip("chatter", "quindar_outro");
+			voidnoise_clip = this.load_audio_clip("chatter", "voidnoise");
+		}
 
-            if (GameDatabase.Instance.ExistsAudioClip(path2))
-            {
-                quindar_02_clip = GameDatabase.Instance.GetAudioClip(path2);
-                Log.dbg("quindar_02 clip loaded");
-            }
-            else Log.warn("quindar_02 audio file missing!");
-
-            Log.dbg("loading voidnoise clip");
-            string path3 = GDBAsset.Solve("Sounds", "chatter", "voidnoise");
-
-            if (GameDatabase.Instance.ExistsAudioClip(path3))
-            {
-                voidnoise_clip = GameDatabase.Instance.GetAudioClip(path3);
-                Log.dbg("voidnoise clip loaded");
-            }
-            else Log.warn("voidnoise audio file missing!");
-        }
-
-        private void load_beep_audio()
+		private void load_beep_audio()
         {
             string probe_sounds_root = GDBAsset.SourceDir("Sounds", "beeps");
 
@@ -2839,8 +2827,8 @@ namespace Chatterer
                 }
                 initial_chatter.Stop();
                 response_chatter.Stop();
-                quindar1.Stop();
-                quindar2.Stop();
+                quindar_intro.Stop();
+                quindar_outro.Stop();
                 sstv.Stop();
                 exchange_playing = false;
             }
@@ -3076,8 +3064,8 @@ namespace Chatterer
                     {
                         initial_chatter.mute = true;
                         response_chatter.mute = true;
-                        quindar1.mute = true;
-                        quindar2.mute = true;
+                        quindar_intro.mute = true;
+                        quindar_outro.mute = true;
                     }
 
                     foreach (BackgroundSource src in backgroundsource_list)
@@ -3111,8 +3099,8 @@ namespace Chatterer
                     {
                         initial_chatter.mute = false;
                         response_chatter.mute = false;
-                        quindar1.mute = false;
-                        quindar2.mute = false;
+                        quindar_intro.mute = false;
+                        quindar_outro.mute = false;
                     }
 
                     foreach (BackgroundSource src in backgroundsource_list)
@@ -3218,12 +3206,12 @@ namespace Chatterer
             response_chatter = chatter_player.AddComponent<AudioSource>();
             response_chatter.volume = chatter_vol_slider;
             response_chatter.spatialBlend = 0.0f;
-            quindar1 = chatter_player.AddComponent<AudioSource>();
-            quindar1.volume = quindar_vol_slider;
-            quindar1.spatialBlend = 0.0f;
-            quindar2 = chatter_player.AddComponent<AudioSource>();
-            quindar2.volume = quindar_vol_slider;
-            quindar2.spatialBlend = 0.0f;
+            quindar_intro = chatter_player.AddComponent<AudioSource>();
+            quindar_intro.volume = quindar_vol_slider;
+            quindar_intro.spatialBlend = 0.0f;
+            quindar_outro = chatter_player.AddComponent<AudioSource>();
+            quindar_outro.volume = quindar_vol_slider;
+            quindar_outro.spatialBlend = 0.0f;
             chatter.chorus_filter = chatter_player.AddComponent<AudioChorusFilter>();
             chatter.chorus_filter.enabled = false;
             chatter.distortion_filter = chatter_player.AddComponent<AudioDistortionFilter>();
@@ -3338,8 +3326,8 @@ namespace Chatterer
             load_plugin_settings();
 
             load_quindar_audio();
-            quindar1.clip = quindar_01_clip;
-            quindar2.clip = quindar_02_clip;
+            quindar_intro.clip = quindar_intro_clip;
+            quindar_outro.clip = quindar_outro_clip;
 
             initialize_new_exchange();
 

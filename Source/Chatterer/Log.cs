@@ -52,6 +52,11 @@ namespace Chatterer
 			log.detail(msg, @params);
 		}
 
+		internal static void trace(string msg, params object[] @params)
+		{
+			log.trace(msg, @params);
+		}
+
 		internal static void error(Exception e, object offended)
 		{
 			log.error(offended, e);
