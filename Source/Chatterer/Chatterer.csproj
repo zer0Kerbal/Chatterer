@@ -67,6 +67,7 @@
     <Compile Include="Log.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="ModuleManagerSupport.cs" />
+    <Compile Include="Properties\LegalMamboJambo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Version.tt">

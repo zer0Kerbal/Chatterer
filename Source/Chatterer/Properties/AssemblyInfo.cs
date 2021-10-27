@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Chatterer /L Unofficial")]
+[assembly: AssemblyTitle("Chatterer /L Unleashed")]
 [assembly: AssemblyDescription("Add some SSTV, beeps, and nonsensical radio chatter between your crewed command pods and Mission Control")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("L Aerospace/KSP Division")]
-[assembly: AssemblyProduct("Chatterer")]
-[assembly: AssemblyCopyright("© 2020-2021 LisiasT")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany(Chatterer.LegalMamboJambo.Company)]
+[assembly: AssemblyProduct(Chatterer.LegalMamboJambo.Product)]
+[assembly: AssemblyCopyright(Chatterer.LegalMamboJambo.Copyright)]
+[assembly: AssemblyTrademark(Chatterer.LegalMamboJambo.Trademark)]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Chatterer.Version.Number)]
 [assembly: AssemblyFileVersion(Chatterer.Version.Number)]
 [assembly: KSPAssembly("Chatterer", Chatterer.Version.major, Chatterer.Version.minor)]
-[assembly: KSPAssemblyDependency("KSPe", 2, 2)]
-[assembly: KSPAssemblyDependency("KSPe.UI", 2, 2)]
+[assembly: KSPAssemblyDependency("KSPe", 2, 4)]
+[assembly: KSPAssemblyDependency("KSPe.UI", 2, 4)]

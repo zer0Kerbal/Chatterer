@@ -1,8 +1,8 @@
-# Chatterer /L Unofficial
+# Chatterer /L Unleashed
 
 Add some SSTV, beeps, and nonsensical radio chatter between your crewed command pods and Mission Control
 
-Unofficial fork by Lisias.
+[Unleashed](https://ksp.lisias.net/add-ons-unleashed/) fork by Lisias.
 
 
 ## In a Hurry

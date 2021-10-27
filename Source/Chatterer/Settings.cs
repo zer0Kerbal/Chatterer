@@ -1,6 +1,6 @@
 ﻿///////////////////////////////////////////////////////////////////////////////
 //
-//    Chatterer a plugin for Kerbal Space Program from SQUAD
+//    Chatterer /L Unleashed, a plugin for Kerbal Space Program from SQUAD
 //    (https://www.kerbalspaceprogram.com/)
 //    Copyright (C) 2020-21 LisiasT 
 //    Copyright (C) 2014-20 Athlonic 

@@ -1,4 +1,4 @@
-# Chatterer :: Changes
+# Chatterer /L Unleashed :: Changes
 
 * 2021-0413: 0.9.99.3 (LisiasT) for KSP >= 1.3
 	+ Fix a missing KSPe.IO.File<> (lack of) using on loading MP3 files.
