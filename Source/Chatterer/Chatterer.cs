@@ -61,34 +61,51 @@ using Toolbar = KSPe.UI.Toolbar;
 
 namespace Chatterer
 {
-    public class ChatterAudioList
-    {
-        //class to manage chatter clips
-        public List<AudioClip> capcom;
-        public List<AudioClip> capsule;
-        public List<AudioClip> capsuleF;
-        public string directory;
-        public bool is_active;
+	public class ChatterAudioList
+	{
+		//class to manage chatter clips
+		public List<AudioClip> capcom;
+		public List<AudioClip> capsule;
+		public List<AudioClip> capsuleF;
+		public readonly string directory;
+		public bool is_active;
 
-        public ChatterAudioList()
-        {
-            capcom = new List<AudioClip>();
-            capsule = new List<AudioClip>();
-            capsuleF = new List<AudioClip>();
-            directory = "dir";
-            is_active = true;
-        }
+		public ChatterAudioList(string directory)
+		{
+			capcom = new List<AudioClip>();
+			capsule = new List<AudioClip>();
+			capsuleF = new List<AudioClip>();
+			this.directory = directory;
+			is_active = true;
+		}
 
 		internal static ChatterAudioList createFrom(ConfigNode cn)
 		{
-			ChatterAudioList r = new ChatterAudioList();
-			if (cn.HasValue("directory")) r.directory = cn.GetValue("directory");
+			string directory = "dir";
+			if (cn.HasValue("directory")) directory = cn.GetValue("directory");
+
+			ChatterAudioList r = new ChatterAudioList(directory);
 			if (cn.HasValue("is_active")) r.is_active = Boolean.Parse(cn.GetValue("is_active"));
 			return r;
 		}
+
+		public override bool Equals(object o) => o is ChatterAudioList && this.directory.Equals(((ChatterAudioList)o).directory);
+		private int _hash = -1;
+		public override int GetHashCode()
+		{
+			if (this._hash > 0) return this._hash;
+			int hash = 7;
+			hash = 31 * hash + this.directory.GetHashCode();
+			return (this._hash = hash);
+		}
+
+		public override string ToString()
+		{
+			return base.ToString() + ":" + this.directory;
+		}
 	}
 
-    public class AudioSettings
+	public class AudioSettings
     {
         public AudioChorusFilter chorus_filter;
         public AudioDistortionFilter distortion_filter;
@@ -987,9 +1004,8 @@ namespace Chatterer
                         if (custom_dir_name.Trim() != "" && custom_dir_name != "directory name" && !already_loaded)
                         {
 							//set name isn't blank, "directory name", or already loaded.  load it.
-							ChatterAudioList cal = new ChatterAudioList
+							ChatterAudioList cal = new ChatterAudioList(custom_dir_name.Trim())
 							{
-								directory = custom_dir_name.Trim(),
 								is_active = true
 							};
 							chatter_array.Add(cal);
@@ -2989,10 +3005,10 @@ namespace Chatterer
         private static string[] add_default_audiosets_directories = {"apollo11", "sts1", "russian", "valentina"};
         private void add_default_audiosets()
         {
+            chatter_array.Clear();
             foreach (string dir in add_default_audiosets_directories)
             {
-                ChatterAudioList cal = new ChatterAudioList();
-                cal.directory = dir;
+                ChatterAudioList cal = new ChatterAudioList(dir);
                 cal.is_active = true;
                 chatter_array.Add(cal);
             }

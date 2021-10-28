@@ -633,7 +633,11 @@ namespace Chatterer
 
             //Load audioset info
             foreach (ConfigNode _set in node.GetNodes("AUDIOSET"))
-                chatter_array.Add(ChatterAudioList.createFrom(_set));  //create a new entry in the list for each audioset
+            {
+                ChatterAudioList cal = ChatterAudioList.createFrom(_set);
+                if (!chatter_array.Contains(cal))
+                    chatter_array.Add(cal);  //create a new entry in the list for each audioset
+            }
 
             Log.dbg("audiosets found: {0} :: reloading chatter audio", chatter_array.Count);
             load_chatter_audio();   //reload audio
