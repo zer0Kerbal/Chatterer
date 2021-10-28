@@ -51,16 +51,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 using KSP.UI.Screens;
-
+using UnityEngine;
+using File = KSPe.IO.File<Chatterer.Startup>;
+using GDBAsset = KSPe.GameDB.Asset<Chatterer.Startup>;
 using GUI = KSPe.UI.GUI;
 using GUILayout = KSPe.UI.GUILayout;
 using Toolbar = KSPe.UI.Toolbar;
-
-using Asset = KSPe.IO.Asset<Chatterer.Startup>;
-using GDBAsset = KSPe.GameDB.Asset<Chatterer.Startup>;
-using File = KSPe.IO.File<Chatterer.Startup>;
 
 namespace Chatterer
 {
@@ -220,11 +217,11 @@ namespace Chatterer
         private AudioClip quindar_outro_clip;
         private AudioClip voidnoise_clip;
 
-        //Chatter variables
-        private bool exchange_playing = false;
+		//Chatter variables
+		private bool exchange_playing = false;
         private bool pod_begins_exchange = false;
         private bool was_on_EVA = false;
-        private int initial_chatter_source; //whether capsule or capcom begins exchange
+        private ChatStarter initial_chatter_source; //whether capsule or capcom begins exchange
         private List<AudioClip> initial_chatter_set = new List<AudioClip>();    //random clip pulled from here
         private int initial_chatter_index;  //index of random clip
         private List<AudioClip> response_chatter_set = new List<AudioClip>();   //and here
@@ -244,22 +241,9 @@ namespace Chatterer
         private int prev_num_pages;
 
         //integration with blizzy78's Toolbar plugin
-        private Toolbar.Button chatterer_toolbar_button;
+        private Toolbar.Button button;
         private bool useBlizzy78Toolbar = false;
 
-        //KSP Stock application launcherButton
-        private ApplicationLauncherButton launcherButton = null;
-        private Texture2D chatterer_button_Texture = null;
-        private Texture2D chatterer_button_TX; // = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_TX_muted; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_RX; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_RX_muted; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_SSTV; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_SSTV_muted; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_idle; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_idle_muted; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_disabled; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
-        private Texture2D chatterer_button_disabled_muted; //  = new Texture2D(38, 38, TextureFormat.ARGB32, false);
 
         //Main window
         protected Rect main_window_pos = new Rect(Screen.width / 2f, Screen.height / 2f, 10f, 10f);
@@ -280,9 +264,6 @@ namespace Chatterer
         private bool show_lab_gui = false;
         protected Rect lab_window_pos = new Rect(Screen.width / 2f, Screen.height / 2f, 10f, 10f);
         private int lab_window_id;
-
-        //Textures
-        private Texture2D line_512x4; // = new Texture2D(512, 8, TextureFormat.ARGB32, false);
 
         //GUIStyles
         private GUIStyle label_txt_left;
@@ -331,7 +312,7 @@ namespace Chatterer
         private BeepSource OTP_source = new BeepSource();
         private AudioClip OTP_stored_clip;    //holds the set probe sample while another sample plays once
         private bool OTP_playing = false;
-        
+
         private bool chatter_exists = false;
         private bool sstv_exists = false;
         private bool science_transmitted = false;  //for SSTV on science
@@ -386,61 +367,45 @@ namespace Chatterer
 		{
 		}
 
-		private void launcherButtonTexture_check()
-        {
-        // launcherButton texture change check
-             
-            if (all_muted)
-            {
-                if (initial_chatter.isPlaying)
-                {
-                    if (initial_chatter_source == 0) SetAppLauncherButtonTexture(chatterer_button_RX_muted);
-                    else SetAppLauncherButtonTexture(chatterer_button_TX_muted);
-                }
-                else if (response_chatter.isPlaying)
-                {
-                    if (initial_chatter_source == 1) SetAppLauncherButtonTexture(chatterer_button_RX_muted);
-                    else SetAppLauncherButtonTexture(chatterer_button_TX_muted);
-                }
-                else if (sstv.isPlaying) SetAppLauncherButtonTexture(chatterer_button_SSTV_muted);
-                else if (!inRadioContact) SetAppLauncherButtonTexture(chatterer_button_disabled_muted);
-                else SetAppLauncherButtonTexture(chatterer_button_idle_muted);
-             
-            }
-            else
-            {
-                if (initial_chatter.isPlaying)
-                {
-                    if (initial_chatter_source == 0) SetAppLauncherButtonTexture(chatterer_button_RX);
-                    else SetAppLauncherButtonTexture(chatterer_button_TX);
-                }
-                else if (response_chatter.isPlaying)
-                {
-                    if (initial_chatter_source == 1) SetAppLauncherButtonTexture(chatterer_button_RX);
-                    else SetAppLauncherButtonTexture(chatterer_button_TX);
-                }
-                else if (sstv.isPlaying) SetAppLauncherButtonTexture(chatterer_button_SSTV);
-                else if (!inRadioContact) SetAppLauncherButtonTexture(chatterer_button_disabled);
-                else SetAppLauncherButtonTexture(chatterer_button_idle);
-            }
-        }
+		internal class ChatStatus:Toolbar.State.Status<PlayingState> { protected ChatStatus(PlayingState v) : base(v) { } public static implicit operator ChatStatus(PlayingState v) => new ChatStatus(v); public static implicit operator PlayingState(ChatStatus s) => s.v; }
+		private PlayingState playingState = PlayingState.disabled;
+		private Toolbar.State.Control chattingStateControl = null;
 
-        private void SetAppLauncherButtonTexture(Texture2D tex2d)
-        {
-            // Set new launcherButton texture
-            if (launcherButton != null)
-            {
-                if (tex2d != chatterer_button_Texture)
-                {
-                    chatterer_button_Texture = tex2d;
-                    launcherButton.SetTexture(tex2d);
+		private void updateButtonState()
+		{
+			PlayingState p;
+			if (all_muted)
+			{
+				if (initial_chatter.isPlaying)
+					p = (ChatStarter.capcom == this.initial_chatter_source ? PlayingState.rx_muted : PlayingState.tx_muted);
+				else if (response_chatter.isPlaying)
+					p = (ChatStarter.pod == this.initial_chatter_source ? PlayingState.tx_muted : PlayingState.rx_muted);
+				else if (sstv.isPlaying)
+					p = PlayingState.sstv_muted;
+				else if (!inRadioContact)
+					p = PlayingState.disabled_muted;
+				else
+					p = PlayingState.idle_muted;
+			}
+			else
+			{
+				if (initial_chatter.isPlaying)
+					p = (ChatStarter.capcom == this.initial_chatter_source ? PlayingState.rx : PlayingState.tx);
+				else if (response_chatter.isPlaying)
+					p = (ChatStarter.pod == this.initial_chatter_source ? PlayingState.tx : PlayingState.rx);
+				else if (sstv.isPlaying)
+					p = PlayingState.sstv;
+				else if (!inRadioContact)
+					p = PlayingState.disabled;
+				else
+					p = PlayingState.idle;
+			}
+			if (p.Equals(this.playingState)) return;
+			Log.dbg("Switching State from {0} to {1}", this.playingState, p);
+			this.button.Status = (ChatStatus)(this.playingState = p);
+		}
 
-                    Log.dbg("SetAppLauncherButtonTexture({0});", tex2d);
-                }
-            }
-        }
-
-        public void UIToggle()
+		public void UIToggle()
         {
             if (!hide_all_windows)
             {
@@ -875,7 +840,7 @@ namespace Chatterer
 
             //Separator
             GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-            GUILayout.Label(line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
+            GUILayout.Label(UI.Image.line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
             GUILayout.EndHorizontal();
 
             //Display GUI accordingly
@@ -1332,7 +1297,7 @@ namespace Chatterer
 
                 // Separator
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                GUILayout.Label(line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
+                GUILayout.Label(UI.Image.line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
                 GUILayout.EndHorizontal();
 
                 //Sample selector
@@ -1396,7 +1361,7 @@ namespace Chatterer
             if (beeps_exists && sstv_exists)
             {
                 GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                GUILayout.Label(line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
+                GUILayout.Label(UI.Image.line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
                 GUILayout.EndHorizontal();
             }
 
@@ -1494,7 +1459,7 @@ namespace Chatterer
 
             //line to separate
             GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-            GUILayout.Label(line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
+            GUILayout.Label(UI.Image.line_512x4, GUILayout.ExpandWidth(false), GUILayout.Width(275f), GUILayout.Height(10f));
             GUILayout.EndHorizontal();
 
             //EVA breathing
@@ -2744,11 +2709,11 @@ namespace Chatterer
 
             response_delay_secs = rand.Next(2, 5);  // select another random int to set response delay time
 
-            if (pod_begins_exchange) initial_chatter_source = 1;    //pod_begins_exchange set true OnUpdate when staging and on event change
-            else initial_chatter_source = rand.Next(0, 2);   //if i_c_s == 0, con sends first message; if i_c_S == 1, pod sends first message
+            if (pod_begins_exchange) initial_chatter_source = ChatStarter.pod;    //pod_begins_exchange set true OnUpdate when staging and on event change
+            else initial_chatter_source = (ChatStarter)rand.Next(0, 2);   //if i_c_s == 0, con sends first message; if i_c_S == 1, pod sends first message
             pod_begins_exchange = false; // Reset so pod doesn't always being exchange.
 
-            if (initial_chatter_source == 0)
+            if (ChatStarter.capcom == initial_chatter_source)
             {
                 initial_chatter_set = current_capcom_chatter;
                 if (chatter_is_female) response_chatter_set = current_capsuleF_chatter;
@@ -2770,6 +2735,7 @@ namespace Chatterer
             }
             if (initial_chatter_set.Count > 0) initial_chatter.clip = initial_chatter_set[initial_chatter_index];
             else Log.warn("Initial chatter set is empty");
+
             if (response_chatter_set.Count > 0) response_chatter.clip = response_chatter_set[response_chatter_index];
             else Log.warn("Response chatter set is empty");
         }
@@ -3310,19 +3276,6 @@ namespace Chatterer
 
             load_beep_audio();      // this must run before loading settings (else no beep clips to assign to sources))
 
-            this.line_512x4                         = Asset.Texture2D.LoadFromFile(false, "Textures", "line_512x4");
-            // initialise launcherButton textures
-            this.chatterer_button_TX                = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_TX");
-            this.chatterer_button_TX_muted          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_TX_muted");
-            this.chatterer_button_RX                = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_RX");
-            this.chatterer_button_RX_muted          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_RX_muted");
-            this.chatterer_button_SSTV              = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_SSTV");
-            this.chatterer_button_SSTV_muted        = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_SSTV_muted");
-            this.chatterer_button_idle              = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_idle");
-            this.chatterer_button_idle_muted        = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_idle_muted");
-            this.chatterer_button_disabled          = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_disabled");
-            this.chatterer_button_disabled_muted    = Asset.Texture2D.LoadFromFile(false, "Textures", "chatterer_button_disabled_muted");
-
             load_plugin_settings();
 
             load_quindar_audio();
@@ -3368,23 +3321,37 @@ namespace Chatterer
             Log.dbg("Awake() has finished...");
         }
 
-        private void Start()
-        {
-			Texture2D chatterer_icon_toolbar = Asset.Texture2D.LoadFromFile("Textures", "chatterer_icon_toolbar");
-			chatterer_toolbar_button = Toolbar.Button.Create(this
+		private void Start()
+		{
+			this.button = Toolbar.Button.Create(this
 					, ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW
-					, chatterer_button_idle, chatterer_icon_toolbar
+					, UI.Icon.chatterer_button_idle, UI.Icon.chatterer_icon_toolbar
 					, "Open/Close Chatterer UI"
 				);
-			chatterer_toolbar_button.Toolbar.Add(Toolbar.Button.ToolbarEvents.Kind.Active, new Toolbar.Button.Event(this.UIToggle, this.UIToggle));
+			this.button.Toolbar.Add(Toolbar.Button.ToolbarEvents.Kind.Active, new Toolbar.Button.Event(this.UIToggle, this.UIToggle));
+
+			this.chattingStateControl = this.button.State.Controller.Create<ChatStatus>(
+				new Dictionary<Toolbar.State.Status, Toolbar.State.Data> {
+							{ (ChatStatus)PlayingState.disabled, Toolbar.State.Data.Create(UI.Icon.chatterer_button_disabled, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.disabled_muted, Toolbar.State.Data.Create(UI.Icon.chatterer_button_disabled_muted, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.tx, Toolbar.State.Data.Create(UI.Icon.chatterer_button_TX, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.tx_muted, Toolbar.State.Data.Create(UI.Icon.chatterer_button_TX_muted, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.rx, Toolbar.State.Data.Create(UI.Icon.chatterer_button_RX, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.rx_muted, Toolbar.State.Data.Create(UI.Icon.chatterer_button_RX_muted, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.sstv, Toolbar.State.Data.Create(UI.Icon.chatterer_button_SSTV, UI.Icon.chatterer_icon_toolbar) }
+							,{ (ChatStatus)PlayingState.sstv_muted, Toolbar.State.Data.Create(UI.Icon.chatterer_button_SSTV_muted, UI.Icon.chatterer_icon_toolbar) }
+				});
+
+			ToolbarController.Instance.Add(button);
 			ToolbarController.Instance.ButtonsActive(!this.useBlizzy78Toolbar, this.useBlizzy78Toolbar);
-			ToolbarController.Instance.Add(chatterer_toolbar_button);
 
-            Log.dbg("Starting an exchange : Hello !");
-            begin_exchange(0); // Trigger an exchange on Start to say hello
-        }
+			this.button.Status = (ChatStatus)(this.playingState = PlayingState.disabled);
 
-        public void Update()
+			Log.dbg("Starting an exchange : Hello !");
+			begin_exchange(0); // Trigger an exchange on Start to say hello
+		}
+
+		public void Update()
         {
             //Insta-... key setup
             if (insta_chatter_key_just_changed && Input.GetKeyUp(insta_chatter_key)) insta_chatter_key_just_changed = false;
@@ -3394,8 +3361,8 @@ namespace Chatterer
 
             radio_check();
 
-            launcherButtonTexture_check();
-            
+			this.updateButtonState();
+
             if (FlightGlobals.ActiveVessel != null)
             {
                 vessel = FlightGlobals.ActiveVessel;
@@ -3683,7 +3650,7 @@ namespace Chatterer
                                         if (bm.audiosource.isPlaying == false)
                                         {
                                             bm.audiosource.Play();
-                                            SetAppLauncherButtonTexture(chatterer_button_SSTV);
+											this.button.Status = (ChatStatus)(this.playingState = PlayingState.sstv);
                                         }
                                     }
                                 }
@@ -3713,7 +3680,7 @@ namespace Chatterer
                                         {
                                             //Log.dbg("timer limit reached, playing source {0}", bm.beep_name);
                                             bm.audiosource.Play();  //else beep
-                                            SetAppLauncherButtonTexture(chatterer_button_SSTV);
+											this.button.Status = (ChatStatus)(this.playingState = PlayingState.sstv);
                                         }
                                     }
                                 }
@@ -3750,9 +3717,9 @@ namespace Chatterer
                                         else
                                         {
                                             bm.audiosource.Play();  //else beep
-                                            SetAppLauncherButtonTexture(chatterer_button_SSTV);
-                                        }
-                                    }
+											this.button.Status = (ChatStatus)(this.playingState = PlayingState.sstv);
+										}
+									}
                                 }
                             }
                         }
@@ -3809,8 +3776,7 @@ namespace Chatterer
             {
                 if (exchange_playing)
                 {
-                    bool podInitiatedExchange = (initial_chatter_source == 1);
-                    return (podInitiatedExchange) ? initial_chatter.isPlaying : response_chatter.isPlaying;
+                    return (ChatStarter.pod == initial_chatter_source) ? initial_chatter.isPlaying : response_chatter.isPlaying;
                 }
                 else
                 {

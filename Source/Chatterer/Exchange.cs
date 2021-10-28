@@ -35,7 +35,7 @@ namespace Chatterer
             exchange_playing = true;
             initialize_new_exchange();
 
-            if (initial_chatter_source == 1)
+            if (ChatStarter.pod == initial_chatter_source)
             {
                 //capsule starts the exchange
                 //always play regardless of radio contact state
@@ -59,7 +59,7 @@ namespace Chatterer
                     Log.warn("initial_chatter_set has no audioclips, abandoning exchange");
                 }
             }
-            else if (initial_chatter_source == 0)
+            else if (ChatStarter.capcom == initial_chatter_source)
             {
                 //capcom starts the exchange
                 Log.dbg("Capcom starts the exchange...");
@@ -118,7 +118,7 @@ namespace Chatterer
             if (response_chatter_set.Count > 0 && (inRadioContact))
             {
                 Log.dbg("playing response");
-                if (initial_chatter_source == 1)
+                if (ChatStarter.pod == initial_chatter_source)
                 {
                     Log.dbg("Capcom responding");
 
@@ -143,7 +143,7 @@ namespace Chatterer
                         //response chatter has finished playing
                     }
                 }
-                else if (initial_chatter_source == 0)
+                else if (ChatStarter.capcom == initial_chatter_source)
                 {
                     if (response_chatter.isPlaying == false)
                     {

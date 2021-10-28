@@ -68,6 +68,8 @@
     <Compile Include="ModuleManagerSupport.cs" />
     <Compile Include="Properties\LegalMamboJambo.cs" />
     <Compile Include="ToolbarSupport.cs" />
+    <Compile Include="UI.cs" />
+    <Compile Include="Common.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Version.tt">
