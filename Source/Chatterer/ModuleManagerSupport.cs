@@ -2,8 +2,8 @@
 //
 //    Chatterer /L Unleashed, a plugin for Kerbal Space Program from SQUAD
 //    (https://www.kerbalspaceprogram.com/)
-//    Copyright (C) 2020-21 LisiasT 
-//    Copyright (C) 2014-20 Athlonic 
+//    Copyright (C) 2020-2021 LisiasT 
+//    Copyright (C) 2014-2020 Athlonic 
 //    Copyright (C) 2013 Iannic-ann-od
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 using System.Collections.Generic;
 
 namespace Chatterer
